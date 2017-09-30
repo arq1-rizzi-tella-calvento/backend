@@ -1,6 +1,6 @@
 class SurveysController < ApplicationController
   def create
-    render json: {}, status: :ok
+    render json: {message: 'Survey successfully submitted'}, status: :ok
   end
 
   def new
