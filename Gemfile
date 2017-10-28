@@ -44,6 +44,12 @@ group :development, :test do
   gem 'selenium-webdriver'
   gem 'rspec-rails', '~> 3.6'
   gem 'sqlite3'
+  gem 'factory_bot_rails'
+  gem 'rubocop', '~> 0.51.0', require: false
+end
+
+group :test do
+  gem 'shoulda-matchers', '~> 3.1'
 end
 
 group :development do

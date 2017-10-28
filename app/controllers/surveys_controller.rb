@@ -5,7 +5,16 @@ class SurveysController < ApplicationController
   end
 
   def new
-    survey = [
+    common_options = ['Ya curse', 'Todavia no voy a cursar']
+    survey.each { |question| question[:options].concat(common_options) }
+
+    render json: survey, status: :ok
+  end
+
+  private
+
+  def survey
+    [
       {
         name: 'Estructura de datos',
         options: ['C1 - 21-22hs Miercoles', 'C2 - 21-22hs Jueves']
@@ -23,10 +32,5 @@ class SurveysController < ApplicationController
         options: ['C1 - 18-22hs Martes', 'C2 - 18-22hs Viernes']
       }
     ]
-
-    common_options = ['Ya curse', 'Todavia no voy a cursar']
-    survey.each { |question| question[:options].concat(common_options) }
-
-    render json: survey, status: :ok
   end
 end
