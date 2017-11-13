@@ -1,6 +1,6 @@
 class Chair < ApplicationRecord
-  belongs_to :subject
-  validates_presence_of :subject
+  belongs_to :subject_in_quarter
+  validates_presence_of :subject_in_quarter
 
   has_many :answers
   has_many :students, through: :answers

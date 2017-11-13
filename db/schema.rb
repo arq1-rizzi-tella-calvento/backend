@@ -33,11 +33,12 @@ ActiveRecord::Schema.define(version: 20171108230907) do
   end
 
   create_table "chairs", force: :cascade do |t|
-    t.integer "subject_id"
+    t.integer "subject_in_quarter_id"
     t.integer "quota", default: 0
+    t.string "time"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["subject_id"], name: "index_chairs_on_subject_id"
+    t.index ["subject_in_quarter_id"], name: "index_chairs_on_subject_in_quarter_id"
   end
 
   create_table "reply_options", force: :cascade do |t|
