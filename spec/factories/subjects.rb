@@ -1,5 +1,5 @@
 FactoryBot.define do
   factory :subject do
-    name "Subject #{Random.rand(100)}"
+    sequence(:name) { |n| "Materia #{n}"}
   end
 end
