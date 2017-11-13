@@ -7,4 +7,5 @@ Rails.application.routes.draw do
       get :subjects
     end
   end
+  resources :signin, only: %i[show], defaults: { format: :json }
 end
