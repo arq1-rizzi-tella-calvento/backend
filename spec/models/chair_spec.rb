@@ -2,7 +2,7 @@ require 'rails_helper'
 
 describe Chair do
   context 'validations' do
-    it { expect(subject).to validate_presence_of(:subject) }
+    it { expect(subject).to validate_presence_of(:subject_in_quarter) }
   end
 
   context '.with_over_demand' do

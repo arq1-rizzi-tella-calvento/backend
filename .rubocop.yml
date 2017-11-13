@@ -8,6 +8,7 @@ AllCops:
     - 'script/**/*'
     - 'bin/*'
     - './Gemfile'
+    - 'vendor/**/*'
 
 Metrics/LineLength:
   Max: 120
@@ -16,7 +17,7 @@ Style/Documentation:
   Enabled: false
 
 Metrics/BlockLength:
-  Max: 50
+  Max: 60
 
 Metrics/MethodLength:
   Max: 50
