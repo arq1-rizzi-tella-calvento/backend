@@ -10,35 +10,37 @@ describe SurveysController do
   end
 
   context 'GET #new' do
-    let(:expected_response) do
-      [
-        {
-          name: 'Estructura de datos',
-          options: ['C1 - 21-22hs Miercoles', 'C2 - 21-22hs Jueves']
-        },
-        {
-          name: 'Matematica II',
-          options: ['C1 - 8-12hs Viernes', 'C2 - 8-12hs Lunes']
-        },
-        {
-          name: 'Ingles I',
-          options: ['C1 - 14-16hs Jueves', 'C2 - 14-16hs Martes']
-        },
-        {
-          name: 'Programación concurrente',
-          options: ['C1 - 18-22hs Martes', 'C2 - 18-22hs Viernes']
-        }
-      ]
+    before do
+      @a_chair = create(:chair)
+      subject_in_quarter = create(:subject_in_quarter, chairs: [@a_chair])
+
+      @a_subject = create(:subject, subject_in_quarter: subject_in_quarter)
+      create(:survey, subjects: [@a_subject])
     end
 
-    it 'returns the questions' do
-      get :new
+    it 'Returns the subjects with their chairs' do
+      first_semester_student = create(:student)
 
-      expect(response_body).to eq expected_response
+      get :new, params: { student_id: first_semester_student.id }
+      survey_subject = response_body.detect { |subject| subject[:name] == @a_subject.name }
+
+      expect(survey_subject[:chairs]).to match_array [@a_chair.time]
     end
 
-    def commission(name, schedule, day)
-      { name: name, class_schedule: schedule, day: day }
+    it 'Only returns the subjects that the student hasnt approved yet' do
+      student_with_approved_subjects = create(:student, subjects: [@a_subject])
+
+      get :new, params: { student_id: student_with_approved_subjects.id }
+
+      expect(response_body).to be_empty
+    end
+
+    it 'Returns a not found when the student is unknown' do
+      unexistent_student_id = 4000
+
+      get :new, params: { student_id: unexistent_student_id }
+
+      expect(response.status).to eq 404
     end
   end
 end
