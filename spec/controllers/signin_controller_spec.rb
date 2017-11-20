@@ -14,9 +14,8 @@ describe SigninController do
       existing_student = create(:student, identity_document: identity_document)
 
       get :show, params: { id: identity_document }
-      parsed_response = JSON response.body
 
-      expect(parsed_response['student_id']).to eq existing_student.id
+      expect(response_body[:student_id]).to eq existing_student.id
     end
   end
 end

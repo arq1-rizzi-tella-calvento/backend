@@ -8,4 +8,5 @@ Rails.application.routes.draw do
     end
   end
   resources :signin, only: %i[show], defaults: { format: :json }
+  resources :summary, only: %i[index], defaults: { format: :json }
 end

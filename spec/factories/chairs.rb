@@ -3,6 +3,7 @@ FactoryBot.define do
     quota 35
     subject_in_quarter
     time 'Lunes y Miercoles de 18:00 - 22:00 hs'
+    number { subject_in_quarter.chairs.count + 1 }
 
     trait :with_over_demand do
       quota 1
