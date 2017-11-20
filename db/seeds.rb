@@ -15,7 +15,7 @@ subjects = [
 
 survey = FB.create :survey
 
-subjects_in_quarter = subjects.map do |subject|
+subjects.map do |subject|
   subject_in_quarter = FB.create :subject_in_quarter, survey: survey, subject: subject
   FB.create :chair, quota: 9, subject_in_quarter: subject_in_quarter
 end
@@ -27,4 +27,14 @@ students.take(3).each do |student|
   student.save!
 end
 
-students.each { |student| FB.create :answer, student: student, chair: Chair.last }
+# over-demanded chair
+students.each { |student| FB.create :answer, student: student, chair: Chair.last, survey: survey }
+
+# highly demanded chair
+students.take(8).each { |student| FB.create :answer, student: student, chair: Chair.first, survey: survey }
+
+# full chair
+students.take(9).each { |student| FB.create :answer, student: student, chair: Chair.second, survey: survey }
+
+# normal chair
+students.take(5).each { |student| FB.create :answer, student: student, chair: Chair.third, survey: survey }

@@ -7,7 +7,13 @@ class Chair < ApplicationRecord
 
   scope :with_over_demand, -> { joins(:answers).having('COUNT(answers.id) > quota').group('id') }
 
+  delegate :subject, to: :subject_in_quarter
+
   def number_of_students
     answers.size
+  end
+
+  def fullness_percentage
+    number_of_students * 100 / quota
   end
 end

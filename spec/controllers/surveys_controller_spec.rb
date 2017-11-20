@@ -34,9 +34,7 @@ describe SurveysController do
     it 'returns the questions' do
       get :new
 
-      survey = JSON.parse(response.body, symbolize_names: true)
-
-      expect(survey).to eq expected_response
+      expect(response_body).to eq expected_response
     end
 
     def commission(name, schedule, day)

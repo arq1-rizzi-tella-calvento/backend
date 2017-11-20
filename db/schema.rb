@@ -14,6 +14,7 @@ ActiveRecord::Schema.define(version: 20171108230907) do
 
   create_table "answers", force: :cascade do |t|
     t.integer "student_id"
+    t.integer "survey_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "chair_id"
@@ -21,6 +22,7 @@ ActiveRecord::Schema.define(version: 20171108230907) do
     t.index ["chair_id"], name: "index_answers_on_chair_id"
     t.index ["reply_option_id"], name: "index_answers_on_reply_option_id"
     t.index ["student_id"], name: "index_answers_on_student_id"
+    t.index ["survey_id"], name: "index_answers_on_survey_id"
   end
 
   create_table "approved_subjects", force: :cascade do |t|
@@ -35,6 +37,7 @@ ActiveRecord::Schema.define(version: 20171108230907) do
   create_table "chairs", force: :cascade do |t|
     t.integer "subject_in_quarter_id"
     t.integer "quota", default: 0
+    t.integer "number"
     t.string "time"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false

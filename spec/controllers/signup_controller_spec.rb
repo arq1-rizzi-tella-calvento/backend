@@ -1,8 +1,6 @@
 require 'rails_helper'
 
 describe SignupController do
-  let(:parsed_response) { JSON(response.body, symbolize_names: true) }
-
   describe 'GET /signup/subjects' do
     it 'Returns a list of subjects' do
       expected_subjects_data = (1..2).map do
@@ -12,7 +10,7 @@ describe SignupController do
 
       get :subjects
 
-      expect(parsed_response).to match_array(expected_subjects_data)
+      expect(response_body).to match_array(expected_subjects_data)
     end
   end
 
@@ -39,7 +37,7 @@ describe SignupController do
       post :create, params: valid_student
 
       expect(response.status).to eq ok
-      expect(parsed_response[:student_id]).to be_present
+      expect(response_body[:student_id]).to be_present
     end
 
     it 'Returns a 400 when one of the subjects does not exist' do
@@ -59,12 +57,12 @@ describe SignupController do
       post :create, params: repeated_student
 
       expect(response.status).to eq bad_request
-      expect(parsed_response[:message]).to eq 'Validation failed: Identity document has already been taken'
+      expect(response_body[:message]).to eq 'Validation failed: Identity document has already been taken'
     end
 
     def missing_subject_response
       expect(response.status).to eq bad_request
-      expect(parsed_response[:message]).to eq 'Nonexistent subject'
+      expect(response_body[:message]).to eq 'Nonexistent subject'
     end
 
     def student_with_subjects(subjects)

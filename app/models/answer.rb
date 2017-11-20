@@ -2,6 +2,7 @@ class Answer < ApplicationRecord
   belongs_to :student
   belongs_to :chair
   belongs_to :reply_option
+  belongs_to :survey
 
   validates_presence_of :student
   validates_presence_of :reply_option, if: -> { chair.blank? }

@@ -31,4 +31,19 @@ describe Chair do
       expect(subject.number_of_students).to eq 4
     end
   end
+
+  context '#fullness_percentage' do
+    let(:subject) { build :chair, quota: 4 }
+
+    before do
+      3.times do
+        student = build :student
+        subject.answers << build(:answer, student: student, chair: subject)
+      end
+    end
+
+    it 'returns the fullness percentage according to the number of students and the max quota' do
+      expect(subject.fullness_percentage).to eq 75.0
+    end
+  end
 end
