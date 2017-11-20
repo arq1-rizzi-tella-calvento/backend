@@ -5,32 +5,21 @@ class SurveysController < ApplicationController
   end
 
   def new
-    common_options = ['Ya curse', 'Todavia no voy a cursar']
-    survey.each { |question| question[:options].concat(common_options) }
+    approved_subject_ids = Student.includes(:subjects).find(student_id).subjects.pluck(:id)
+    survey_subjects = Survey.includes(:subjects).last.subjects.where.not(id: approved_subject_ids)
 
-    render json: survey, status: :ok
+    render json: build_survey(survey_subjects), status: :ok
+  rescue ActiveRecord::RecordNotFound
+    head :not_found
   end
 
   private
 
-  def survey
-    [
-      {
-        name: 'Estructura de datos',
-        options: ['C1 - 21-22hs Miercoles', 'C2 - 21-22hs Jueves']
-      },
-      {
-        name: 'Matematica II',
-        options: ['C1 - 8-12hs Viernes', 'C2 - 8-12hs Lunes']
-      },
-      {
-        name: 'Ingles I',
-        options: ['C1 - 14-16hs Jueves', 'C2 - 14-16hs Martes']
-      },
-      {
-        name: 'Programación concurrente',
-        options: ['C1 - 18-22hs Martes', 'C2 - 18-22hs Viernes']
-      }
-    ]
+  def student_id
+    params.permit(:student_id)[:student_id]
+  end
+
+  def build_survey(survey_subjects)
+    survey_subjects.map { |subject| { name: subject.name, chairs: subject.chairs.map(&:time) } }
   end
 end
