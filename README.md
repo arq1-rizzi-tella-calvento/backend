@@ -1,24 +1,26 @@
 # README
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+## Setup
+Ruby version: 2.4.2
 
-Things you may want to cover:
+* `gem install bundler`
 
-* Ruby version
+* `bundle install --without production`
 
-* System dependencies
+* DB (Dev): `rake db:create db:setup` (sqlite)
 
-* Configuration
+* Server: `rails s` => localhost:3000
 
-* Database creation
+### Tests
 
-* Database initialization
+* DB (Test): `RAILS_ENV=test rake db:create db:migrate`
 
-* How to run the test suite
+* Tests: `rspec`
 
-* Services (job queues, cache servers, search engines, etc.)
+### Misc
 
-* Deployment instructions
+* Terminal: `rails c`
 
-* ...
+* Migraciones: `rake db:migrate`
+
+* Seeds: `rake db:seed`
