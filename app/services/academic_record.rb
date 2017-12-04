@@ -2,7 +2,7 @@ class AcademicRecord
   def enroll_student(student, approved_subjects)
     student.tap do |a_student|
       a_student.subjects = approved_subjects
-      a_student.save!
+      a_student.save!(context: :enroll)
     end
   end
 
@@ -27,6 +27,16 @@ class AcademicRecord
       chairs.sort_by { |data| data[:chair] }
     end
   end
+
+  def register_students(student_emails)
+    student_emails.each { |email| Student.create!(email: email) }
+  end
+
+  def find_student_with(token:)
+    Student.find_by!(token: token)
+  end
+
+  private
 
   def current_survey
     Survey.last
