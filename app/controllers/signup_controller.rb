@@ -8,7 +8,7 @@ class SignupController < ApplicationController
   def create
     created_student = academic_record.enroll_student(student, approved_subjects)
 
-    render json: { student_id: created_student.id }, status: :ok
+    render json: { token: created_student.token }, status: :ok
   rescue INVALID_SUBJECT_SELECTION, ActiveRecord::RecordInvalid => e
     render_error_response(e.message)
   rescue ActiveRecord::RecordNotFound

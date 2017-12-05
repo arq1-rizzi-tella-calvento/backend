@@ -13,7 +13,7 @@ describe SigninController do
     it 'returns the student id when the student exists' do
       get :show, params: { id: student.token }
 
-      expect(response_body[:student_id]).to eq student.id
+      expect(response_body[:token]).to eq student.token
     end
   end
 end

@@ -31,7 +31,7 @@ describe SignupController do
 
       student.reload
       expect(response.status).to eq ok
-      expect(response_body[:student_id]).to be_present
+      expect(response_body[:token]).to eq student.token
       expect(student.name).to eq student_params[:name]
       expect(student.identity_document).to eq student_params[:identity_document]
     end

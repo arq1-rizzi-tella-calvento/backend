@@ -21,26 +21,30 @@ describe SurveysController do
     it 'Returns the subjects with their chairs' do
       first_semester_student = create(:student)
 
-      get :new, params: { student_id: first_semester_student.id }
-      survey_subject = response_body.detect { |subject| subject[:name] == @a_subject.name }
+      get_new_survey first_semester_student
 
+      survey_subject = response_body.detect { |subject| subject[:name] == @a_subject.name }
       expect(survey_subject[:chairs]).to match_array [@a_chair.time]
     end
 
     it 'Only returns the subjects that the student hasnt approved yet' do
       student_with_approved_subjects = create(:student, subjects: [@a_subject])
 
-      get :new, params: { student_id: student_with_approved_subjects.id }
+      get_new_survey student_with_approved_subjects
 
       expect(response_body).to be_empty
     end
 
     it 'Returns a not found when the student is unknown' do
-      unexistent_student_id = 4000
+      unexistent_student_id = Student.new(token: 4000)
 
-      get :new, params: { student_id: unexistent_student_id }
+      get_new_survey unexistent_student_id
 
       expect(response.status).to eq 404
+    end
+
+    def get_new_survey(student)
+      get :new, params: { token: student.token }
     end
   end
 end
