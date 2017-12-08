@@ -1,5 +1,5 @@
 class SurveysController < ApplicationController
-  include SurveysHelper
+  include SurveyService
 
   def create
     success_message = []
@@ -13,7 +13,7 @@ class SurveysController < ApplicationController
       end
     end
 
-    render json: generate_success_message(success_message) , status: :ok
+    render json: generate_success_message(success_message), status: :ok
   end
 
   def new
