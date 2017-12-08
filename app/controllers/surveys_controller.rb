@@ -5,7 +5,7 @@ class SurveysController < ApplicationController
   end
 
   def new
-    approved_subject_ids = Student.includes(:subjects).find(student_id).subjects.pluck(:id)
+    approved_subject_ids = student.subjects.pluck(:id)
     survey_subjects = Survey.includes(:subjects).last.subjects.where.not(id: approved_subject_ids)
 
     render json: build_survey(survey_subjects), status: :ok
@@ -15,8 +15,8 @@ class SurveysController < ApplicationController
 
   private
 
-  def student_id
-    params.permit(:student_id)[:student_id]
+  def student
+    Student.includes(:subjects).find_by!(token: params[:token])
   end
 
   def build_survey(survey_subjects)
