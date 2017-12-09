@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171203204219) do
+ActiveRecord::Schema.define(version: 20171209220910) do
 
   create_table "answers", force: :cascade do |t|
     t.integer "student_id"
@@ -48,6 +48,8 @@ ActiveRecord::Schema.define(version: 20171203204219) do
     t.string "value"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "subject_id"
+    t.index ["subject_id"], name: "index_reply_options_on_subject_id"
   end
 
   create_table "reply_options_subjects", id: false, force: :cascade do |t|

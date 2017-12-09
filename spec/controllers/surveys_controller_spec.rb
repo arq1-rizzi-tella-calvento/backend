@@ -3,7 +3,7 @@ require 'rails_helper'
 describe SurveysController do
   context 'POST #create' do
     let(:subjects) do
-      [{ name: 'Subject test', chairs: [], selectedChair: 'cant' }]
+      [{ name: create(:subject).name, chairs: [], selectedChair: 'cant' }]
     end
     let(:student) do
       Student.create(name: 'Roman Rizzi', email: 'testEmail@mail.com', identity_document: 38_394_032, token: 4000)
@@ -21,22 +21,23 @@ describe SurveysController do
     end
   end
 
+  before do
+    @a_chair = create(:chair)
+    @a_second_chair = create(:chair)
+    subject_in_quarter = create(:subject_in_quarter, chairs: [@a_chair, @a_second_chair])
+
+    @a_subject = create(:subject, subject_in_quarter: subject_in_quarter)
+    @a_survey = create(:survey, subjects: [@a_subject])
+  end
+
   context 'GET #new' do
-    before do
-      @a_chair = create(:chair)
-      subject_in_quarter = create(:subject_in_quarter, chairs: [@a_chair])
-
-      @a_subject = create(:subject, subject_in_quarter: subject_in_quarter)
-      create(:survey, subjects: [@a_subject])
-    end
-
     it 'Returns the subjects with their chairs' do
       first_semester_student = create(:student)
 
       get_new_survey first_semester_student
 
       survey_subject = response_body.detect { |subject| subject[:name] == @a_subject.name }
-      expect(survey_subject[:chairs]).to match_array [@a_chair.time]
+      expect(survey_subject[:chairs]).to match_array [@a_chair.time, @a_second_chair.time]
     end
 
     it 'Only returns the subjects that the student hasnt approved yet' do
@@ -57,6 +58,34 @@ describe SurveysController do
 
     def get_new_survey(student)
       get :new, params: { token: student.token }
+    end
+  end
+
+  context 'GET #edit' do
+    it 'Returns a 404 when there is no submitted survey' do
+      student = create(:student)
+
+      get :edit, params: { id: student.token }
+
+      expect(response.status).to eq 404
+    end
+
+    it 'Returns a 401 when the student is unknown' do
+      unknown_student_token = 'a_token'
+
+      get :edit, params: { id: unknown_student_token }
+
+      expect(response.status).to eq 401
+    end
+
+    it 'Returns a new survey with the previously selected options' do
+      student = create(:student)
+      create(:answer, survey: @a_survey, chair: @a_chair, student: student)
+
+      get :edit, params: { id: student.token }
+      survey_subject = response_body.detect { |subject| subject[:name] == @a_subject.name }
+
+      expect(survey_subject[:selected]).to eq @a_chair.time
     end
   end
 end

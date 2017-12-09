@@ -7,4 +7,12 @@ class Answer < ApplicationRecord
   validates_presence_of :student
   validates_presence_of :reply_option, if: -> { chair.blank? }
   validates_presence_of :chair, if: -> { reply_option.blank? }
+
+  def choice_info
+    if reply_option.present?
+      { name: reply_option.subject.name, selection: 'cant' }
+    else
+      { name: chair.subject.name, selection: chair.time }
+    end
+  end
 end

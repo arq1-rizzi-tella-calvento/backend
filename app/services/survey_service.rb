@@ -10,7 +10,7 @@ module SurveyService
 
   def generate_survey(student, success_message)
     params[:subjects].each do |subject|
-      current_subject = Subject.find_by(name: subject[:name])
+      current_subject = Subject.find_by!(name: subject[:name])
       student_answer = subject[:selectedChair]
       if student_answer != 'approve'
         success_message =
@@ -24,7 +24,7 @@ module SurveyService
     Answer.new.tap do |answer|
       answer.student_id = student_id
       if !student_answer || student_answer == 'cant' || student_answer == ''
-        answer.reply_option = generate_reply_option
+        answer.reply_option = generate_reply_option(current_subject)
       else
         chair = find_chair_by_student_answer(answer, current_subject, student_answer, subject)
         success_message = success_message.push(subject_name: subject[:name], time: chair.time)
@@ -41,9 +41,10 @@ module SurveyService
     chair
   end
 
-  def generate_reply_option
+  def generate_reply_option(subject)
     ReplyOption.new.tap do |a_reply_option|
       a_reply_option.value = 'No voy a cursar'
+      a_reply_option.subject = subject
       a_reply_option.save!
     end
   end
