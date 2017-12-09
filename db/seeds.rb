@@ -9,7 +9,7 @@
 subjects = [
   'Inglés I', 'Inglés II', 'Intro', 'Orga', 'Mate I', 'Estructuras', 'Objetos I', 'BBDD', 'Arduino', 'Labo',
   'Objetos II', 'Persistencia', 'Seguridad', 'Interfaces', 'Objetos III', 'Concurrente', 'Ingeniería', 'Redes',
-  'Funcional', 'Desarrollo', 'Mate II', 'TIP', 'SO', 'Gestión', 'Análisis', 'Requerimientos', 'Desarrollo', 'LFA',
+  'Funcional', 'Desarrollo', 'Mate II', 'TIP', 'SO', 'Gestión', 'Análisis', 'Requerimientos', 'LFA',
   'Sistemas'
 ]
 
@@ -19,7 +19,7 @@ survey = FB.create :survey
 
 subjects.each do |subject|
   subject_in_quarter = FB.create :subject_in_quarter, survey: survey, subject: subject
-  FB.create(:chair, quota: 9, subject_in_quarter: subject_in_quarter)
+  2.times { FB.create(:chair, quota: 9, subject_in_quarter: subject_in_quarter) }
 end
 
 students = (1..10).map { |_| FB.create :student }
