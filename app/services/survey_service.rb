@@ -8,9 +8,21 @@ module SurveyService
     success_message.to_json
   end
 
-  def submit_answer(current_subject, student_answer, subject, success_message)
+  def generate_survey(student, success_message)
+    params[:subjects].each do |subject|
+      current_subject = Subject.find_by(name: subject[:name])
+      student_answer = subject[:selectedChair]
+      if student_answer != 'approve'
+        success_message =
+          submit_answer(current_subject, student_answer, subject, success_message, student.id)
+      end
+    end
+    success_message
+  end
+
+  def submit_answer(current_subject, student_answer, subject, success_message, student_id)
     Answer.new.tap do |answer|
-      answer.student_id = params[:userId]
+      answer.student_id = student_id
       if !student_answer || student_answer == 'cant' || student_answer == ''
         answer.reply_option = generate_reply_option
       else
