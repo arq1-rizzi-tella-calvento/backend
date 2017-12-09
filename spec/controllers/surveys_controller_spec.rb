@@ -6,17 +6,17 @@ describe SurveysController do
       [{ name: 'Subject test', chairs: [], selectedChair: 'cant' }]
     end
     let(:student) do
-      Student.create(name: 'Roman Rizzi', email: 'testEmail@mail.com', identity_document: 38_394_032)
+      Student.create(name: 'Roman Rizzi', email: 'testEmail@mail.com', identity_document: 38_394_032, token: 4000)
     end
 
     it 'returns a 200 status code' do
-      post :create, params: { subjects: subjects, userId: student.id }
+      post :create, params: { subjects: subjects, userId: student.token }
 
       expect(response.status).to eq 200
     end
 
     it 'creates an Answer per subject ' do
-      expect { post :create, params: { subjects: subjects, userId: student.id } }
+      expect { post :create, params: { subjects: subjects, userId: student.token } }
         .to change { Answer.count }.by(subjects.count)
     end
   end

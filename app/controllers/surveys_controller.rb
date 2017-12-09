@@ -3,16 +3,8 @@ class SurveysController < ApplicationController
 
   def create
     success_message = []
-    params[:subjects].each do |subject|
-      current_subject = Subject.find_by(name: subject[:name])
-      student_answer = subject[:selectedChair]
-      if student_answer == 'approve'
-      #   tenemos que asignarla a las materias aprobadas no como una respuesta
-      else
-        success_message = submit_answer(current_subject, student_answer, subject, success_message)
-      end
-    end
-
+    student = academic_record.find_student_with(token: params[:userId])
+    success_message = generate_survey(student, success_message)
     render json: generate_success_message(success_message), status: :ok
   end
 
