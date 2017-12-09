@@ -1,7 +1,19 @@
 class SurveysController < ApplicationController
+  include SurveyService
+
   def create
-    rand
-    render json: { message: 'Survey successfully submitted' }, status: :ok
+    success_message = []
+    params[:subjects].each do |subject|
+      current_subject = Subject.find_by(name: subject[:name])
+      student_answer = subject[:selectedChair]
+      if student_answer == 'approve'
+      #   tenemos que asignarla a las materias aprobadas no como una respuesta
+      else
+        success_message = submit_answer(current_subject, student_answer, subject, success_message)
+      end
+    end
+
+    render json: generate_success_message(success_message), status: :ok
   end
 
   def new
@@ -17,9 +29,5 @@ class SurveysController < ApplicationController
 
   def student
     Student.includes(:subjects).find_by!(token: params[:token])
-  end
-
-  def build_survey(survey_subjects)
-    survey_subjects.map { |subject| { name: subject.name, chairs: subject.chairs.map(&:time) } }
   end
 end

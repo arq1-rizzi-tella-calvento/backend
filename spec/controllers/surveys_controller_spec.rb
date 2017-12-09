@@ -2,10 +2,22 @@ require 'rails_helper'
 
 describe SurveysController do
   context 'POST #create' do
+    let(:subjects) do
+      [{ name: 'Subject test', chairs: [], selectedChair: 'cant' }]
+    end
+    let(:student) do
+      Student.create(name: 'Roman Rizzi', email: 'testEmail@mail.com', identity_document: 38_394_032)
+    end
+
     it 'returns a 200 status code' do
-      post :create
+      post :create, params: { subjects: subjects, userId: student.id }
 
       expect(response.status).to eq 200
+    end
+
+    it 'creates an Answer per subject ' do
+      expect { post :create, params: { subjects: subjects, userId: student.id } }
+        .to change { Answer.count }.by(subjects.count)
     end
   end
 
