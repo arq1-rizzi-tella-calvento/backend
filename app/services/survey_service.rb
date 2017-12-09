@@ -1,9 +1,10 @@
 module SurveyService
   def generate_success_message(success_message)
-    if success_message.empty?
-      success_message = { subjects: [], link: 'link para editar la encuesta' }
-      success_message = { subjects: success_message, link: 'link para editar la encuesta' }
-    end
+    success_message = if success_message.empty?
+                        { subjects: [], link: 'link para editar la encuesta' }
+                      else
+                        { subjects: success_message, link: 'link para editar la encuesta' }
+                      end
     success_message.to_json
   end
 
