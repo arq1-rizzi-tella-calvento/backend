@@ -37,7 +37,7 @@ describe SurveysController do
       get_new_survey first_semester_student
 
       survey_subject = response_body.detect { |subject| subject[:name] == @a_subject.name }
-      expect(survey_subject[:chairs]).to match_array [@a_chair.time, @a_second_chair.time]
+      expect(survey_subject[:chairs]).to match_array [{ id: @a_chair.id, time: @a_chair.time }]
     end
 
     it 'Only returns the subjects that the student hasnt approved yet' do
