@@ -53,7 +53,10 @@ module SurveyService
       {
         name: subject.name,
         id: subject.id,
-        chairs: subject.chairs.map { |chair| { id: chair.id, time: chair.time } }
+        chairs: subject.chairs.map {
+            |chair| {
+              id: chair.id,
+              time: 'C' + chair.number + ' - ' + chair.time } }
       }
     end
   end
