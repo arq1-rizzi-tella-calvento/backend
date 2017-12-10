@@ -1,4 +1,5 @@
 require 'rails_helper'
+include SurveyService
 
 describe SurveysController do
   context 'POST #create' do
@@ -37,7 +38,13 @@ describe SurveysController do
       get_new_survey first_semester_student
 
       survey_subject = response_body.detect { |subject| subject[:name] == @a_subject.name }
-      expect(survey_subject[:chairs]).to match_array [{ id: @a_chair.id, time: @a_chair.time }]
+      expect(
+        survey_subject[:chairs]
+      )
+        .to match_array [
+          { id: @a_chair.id, time: chair_description(@a_chair) },
+          { id: @a_second_chair.id, time: chair_description(@a_second_chair) }
+        ]
     end
 
     it 'Only returns the subjects that the student hasnt approved yet' do

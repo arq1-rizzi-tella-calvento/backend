@@ -27,11 +27,17 @@ module SurveyService
         answer.reply_option = generate_reply_option(current_subject)
       else
         chair = find_chair_by_student_answer(answer, student_answer)
-        success_message = success_message.push(subject_name: subject[:name], time: chair.time)
+        success_message = success_message.push(
+          subject_name: subject[:name], time: chair_description(chair)
+        )
       end
       answer.save!
     end
     success_message
+  end
+
+  def chair_description(chair)
+    'C' + chair.number.to_s + ' - ' + chair.time
   end
 
   def find_chair_by_student_answer(answer, student_answer)
@@ -53,10 +59,13 @@ module SurveyService
       {
         name: subject.name,
         id: subject.id,
-        chairs: subject.chairs.map {
-            |chair| {
-              id: chair.id,
-              time: 'C' + chair.number + ' - ' + chair.time } }
+        selected: '',
+        chairs: subject.chairs.map do |chair|
+          {
+            id: chair.id,
+            time: chair_description(chair)
+          }
+        end
       }
     end
   end
