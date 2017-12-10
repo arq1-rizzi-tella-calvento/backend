@@ -26,7 +26,21 @@ class SurveysController < ApplicationController
     head :unauthorized
   end
 
+  def update
+    student
+    survey_submissions.update_answers(student, Survey.select(:id).last, survey_args)
+    head :ok
+  rescue ActiveRecord::RecordNotFound
+    head :unauthorized
+  rescue survey_submissions::INVALID_ANSWER
+    head :bad_request
+  end
+
   private
+
+  def survey_args
+    params.permit(subjects: %i[name selectedChair])[:subjects]
+  end
 
   def survey_submissions
     @submissions ||= SurveySubmissions.new
