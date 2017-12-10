@@ -12,7 +12,7 @@ module SurveyService
     params[:subjects].each do |subject|
       current_subject = Subject.find_by!(name: subject[:name])
       student_answer = subject[:selectedChair]
-      if student_answer != 'approved'
+      if student_answer != Answer::APRROVED_SUBJECT && student_answer != Answer::NOT_THIS_QUARTER
         success_message =
           submit_answer(current_subject, student_answer, subject, success_message, student.id)
       end
@@ -23,7 +23,7 @@ module SurveyService
   def submit_answer(current_subject, student_answer, subject, success_message, student_id)
     Answer.new.tap do |answer|
       answer.student_id = student_id
-      if !student_answer || student_answer == 'cant' || student_answer == 'dont'
+      if student_answer == Answer::SCHEDULE_PROBLEM
         answer.reply_option = generate_reply_option(current_subject)
       else
         chair = find_chair_by_student_answer(answer, student_answer)
