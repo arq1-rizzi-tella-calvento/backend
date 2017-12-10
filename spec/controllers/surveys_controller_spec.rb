@@ -5,7 +5,15 @@ describe SurveysController do
   let(:student) { create(:student) }
 
   context 'POST #create' do
-    let(:subjects) { [{ name: create(:subject).name, chairs: [], selectedChair: 'cant' }] }
+    let(:subjects) do
+      [{ name: create(:subject).name, chairs: [], selectedChair: Answer::NOT_THIS_QUARTER }]
+    end
+    let(:a_chair) do
+      @a_chair = create(:chair)
+    end
+    let(:other_subjects) do
+      [{ name: create(:subject).name, chairs: [@a_chair], selectedChair: @a_chair.id }]
+    end
 
     it 'returns a 200 status code' do
       post :create, params: { subjects: subjects, userId: student.token }
@@ -13,9 +21,14 @@ describe SurveysController do
       expect(response.status).to eq 200
     end
 
-    it 'creates an Answer per subject ' do
+    it 'creates no Answer because the student doesnt select chairs' do
       expect { post :create, params: { subjects: subjects, userId: student.token } }
-        .to change { Answer.count }.by(subjects.count)
+        .to change { Answer.count }.by(0)
+    end
+
+    it 'creates an Answer per subject' do
+      expect { post :create, params: { subjects: other_subjects, userId: student.token } }
+        .to change { Answer.count }.by(other_subjects.count)
     end
   end
 
