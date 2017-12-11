@@ -1,10 +1,13 @@
 require 'rails_helper'
+include SurveyService
 
 describe SurveysController do
   let(:student) { create(:student) }
 
   context 'POST #create' do
-    let(:subjects) { [{ name: create(:subject).name, chairs: [], selectedChair: 'cant' }] }
+    let(:subjects) { [{ name: create(:subject).name, chairs: [], selectedChair: Answer::NOT_THIS_QUARTER }] }
+    let(:a_chair) { @a_chair = create(:chair) }
+    let(:other_subjects) { [{ name: create(:subject).name, chairs: [@a_chair], selectedChair: @a_chair.id }] }
 
     it 'returns a 200 status code' do
       post :create, params: { subjects: subjects, userId: student.token }
@@ -12,9 +15,14 @@ describe SurveysController do
       expect(response.status).to eq 200
     end
 
-    it 'creates an Answer per subject ' do
+    it 'creates no Answer because the student doesnt select chairs' do
       expect { post :create, params: { subjects: subjects, userId: student.token } }
-        .to change { Answer.count }.by(subjects.count)
+        .to change { Answer.count }.by(0)
+    end
+
+    it 'creates an Answer per subject' do
+      expect { post :create, params: { subjects: other_subjects, userId: student.token } }
+        .to change { Answer.count }.by(other_subjects.count)
     end
   end
 
@@ -32,7 +40,13 @@ describe SurveysController do
       get_new_survey student
 
       survey_subject = response_body.detect { |subject| subject[:name] == @a_subject.name }
-      expect(survey_subject[:chairs]).to match_array [@a_chair.time, @a_second_chair.time]
+      expect(
+        survey_subject[:chairs]
+      )
+        .to match_array [
+          { id: @a_chair.id, time: chair_description(@a_chair) },
+          { id: @a_second_chair.id, time: chair_description(@a_second_chair) }
+        ]
     end
 
     it 'Only returns the subjects that the student hasnt approved yet' do

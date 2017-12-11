@@ -51,10 +51,6 @@ class SurveysController < ApplicationController
     @student ||= Student.includes(:subjects).find_by!(token: token)
   end
 
-  def build_survey(survey_subjects)
-    survey_subjects.map { |subject| { name: subject.name, chairs: subject.chairs.map(&:time), selected: '' } }
-  end
-
   def build_editable_survey(answers, subjects)
     answers_info = answers.map(&:choice_info)
     build_survey(subjects).map do |survey_subject|

@@ -4,6 +4,9 @@ class Answer < ApplicationRecord
   belongs_to :reply_option
   belongs_to :survey
 
+  APRROVED_SUBJECT = 'approved'.freeze
+  NOT_THIS_QUARTER = 'dont'.freeze
+  SCHEDULE_PROBLEM = 'cant'.freeze
   validates_presence_of :student
   validates_presence_of :reply_option, if: -> { chair.blank? }
   validates_presence_of :chair, if: -> { reply_option.blank? }
