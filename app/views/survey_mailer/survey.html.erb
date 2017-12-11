@@ -1,0 +1,3 @@
+<p>Ya está publicada la encuesta de presincripción para el cuatrimestre que viene.</p>
+<p>Tienen tiempo hasta el <%= "#{@survey.end_date.strftime('%d/%m')}" %> para completarla.</p>
+<p>Esta es la <a href=<%= "#{url_options[:host]}/#{@student.token}" %> target='_blank'>encuesta</a></p>
