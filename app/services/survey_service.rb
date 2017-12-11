@@ -12,12 +12,16 @@ module SurveyService
     params[:subjects].each do |subject|
       current_subject = Subject.find_by!(name: subject[:name])
       student_answer = subject[:selectedChair]
-      if student_answer != Answer::APRROVED_SUBJECT && student_answer != Answer::NOT_THIS_QUARTER
+      if available_chair(student_answer)
         success_message =
           submit_answer(current_subject, student_answer, subject, success_message, student.id)
       end
     end
     success_message
+  end
+
+  def available_chair(student_answer)
+    !student_answer.nil? && student_answer != Answer::APRROVED_SUBJECT && student_answer != Answer::NOT_THIS_QUARTER
   end
 
   def submit_answer(current_subject, student_answer, subject, success_message, student_id)

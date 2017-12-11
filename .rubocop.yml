@@ -17,7 +17,7 @@ Style/Documentation:
   Enabled: false
 
 Metrics/BlockLength:
-  Max: 80
+  Max: 90
 
 Metrics/MethodLength:
   Max: 50

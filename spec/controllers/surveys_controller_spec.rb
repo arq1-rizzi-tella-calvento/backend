@@ -5,15 +5,9 @@ describe SurveysController do
   let(:student) { create(:student) }
 
   context 'POST #create' do
-    let(:subjects) do
-      [{ name: create(:subject).name, chairs: [], selectedChair: Answer::NOT_THIS_QUARTER }]
-    end
-    let(:a_chair) do
-      @a_chair = create(:chair)
-    end
-    let(:other_subjects) do
-      [{ name: create(:subject).name, chairs: [@a_chair], selectedChair: @a_chair.id }]
-    end
+    let(:subjects) { [{ name: create(:subject).name, chairs: [], selectedChair: Answer::NOT_THIS_QUARTER }] }
+    let(:a_chair) { @a_chair = create(:chair) }
+    let(:other_subjects) { [{ name: create(:subject).name, chairs: [@a_chair], selectedChair: @a_chair.id }] }
 
     it 'returns a 200 status code' do
       post :create, params: { subjects: subjects, userId: student.token }
