@@ -1,13 +1,10 @@
 require 'rails_helper'
 
 describe SurveysController do
+  let(:student) { create(:student) }
+
   context 'POST #create' do
-    let(:subjects) do
-      [{ name: create(:subject).name, chairs: [], selectedChair: 'cant' }]
-    end
-    let(:student) do
-      Student.create(name: 'Roman Rizzi', email: 'testEmail@mail.com', identity_document: 38_394_032, token: 4000)
-    end
+    let(:subjects) { [{ name: create(:subject).name, chairs: [], selectedChair: 'cant' }] }
 
     it 'returns a 200 status code' do
       post :create, params: { subjects: subjects, userId: student.token }
@@ -32,9 +29,7 @@ describe SurveysController do
 
   context 'GET #new' do
     it 'Returns the subjects with their chairs' do
-      first_semester_student = create(:student)
-
-      get_new_survey first_semester_student
+      get_new_survey student
 
       survey_subject = response_body.detect { |subject| subject[:name] == @a_subject.name }
       expect(survey_subject[:chairs]).to match_array [@a_chair.time, @a_second_chair.time]
@@ -63,8 +58,6 @@ describe SurveysController do
 
   context 'GET #edit' do
     it 'Returns a 404 when there is no submitted survey' do
-      student = create(:student)
-
       get :edit, params: { id: student.token }
 
       expect(response.status).to eq 404
@@ -79,13 +72,31 @@ describe SurveysController do
     end
 
     it 'Returns a new survey with the previously selected options' do
-      student = create(:student)
       create(:answer, survey: @a_survey, chair: @a_chair, student: student)
 
       get :edit, params: { id: student.token }
       survey_subject = response_body.detect { |subject| subject[:name] == @a_subject.name }
 
       expect(survey_subject[:selected]).to eq @a_chair.time
+    end
+  end
+
+  context 'POST #update' do
+    it 'Returns a 401 when the student is unknown' do
+      unknown_student_token = 'a_token'
+
+      put :update, params: { id: unknown_student_token }
+
+      expect(response.status).to eq 401
+    end
+
+    it 'Updates existing answers from a student' do
+      answer = create(:answer, survey: @a_survey, chair: @a_chair, student: student)
+      updated_answers = [{ name: @a_chair.subject.name, selectedChair: @a_second_chair.id }]
+
+      put :update, params: { id: student.token, subjects: updated_answers }
+
+      expect(answer.reload.chair_id).to eq @a_second_chair.id
     end
   end
 end

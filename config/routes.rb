@@ -1,7 +1,7 @@
 Rails.application.routes.draw do
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 
-  resources :surveys, only: %i[new create edit], defaults: { format: :json },
+  resources :surveys, only: %i[new create edit update], defaults: { format: :json },
                       path_names: { new: '/:token/new' }
   resources :signup, only: %i[create], defaults: { format: :json } do
     collection do

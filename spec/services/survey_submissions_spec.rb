@@ -3,26 +3,86 @@ require 'rails_helper'
 describe SurveySubmissions do
   let(:student) { create(:student) }
   let(:survey) { create(:survey) }
-  it 'Returns an empty list when the student didnt submit a survey' do
-    answers = subject.obtain_answers(survey, student)
 
-    expect(answers).to be_empty
+  describe 'Obtaining the answers of a student' do
+    it 'Returns an empty list when the student didnt submit a survey' do
+      answers = subject.obtain_answers(survey, student)
+
+      expect(answers).to be_empty
+    end
+
+    it 'Returns the answers previously submitted' do
+      answer = create(:answer, survey: survey, student: student, chair: build(:chair))
+
+      answers = subject.obtain_answers(survey, student)
+
+      expect(answers).to match_array [answer]
+    end
+
+    it 'Filters out the answers from another survey' do
+      another_survey = create(:survey)
+      create(:answer, survey: another_survey, student: student, chair: build(:chair))
+
+      answers = subject.obtain_answers(survey, student)
+
+      expect(answers).to be_empty
+    end
   end
 
-  it 'Returns the answers previously submitted' do
-    answer = create(:answer, survey: survey, student: student, chair: build(:chair))
+  describe 'Updating the answers of an existing survey' do
+    let(:chair) { create(:chair) }
 
-    answers = subject.obtain_answers(survey, student)
+    it 'When there is no selection made, we DO NOT update the answer' do
+      answer = create(:answer, survey: survey, student: student, chair: chair)
+      answer_attributes = [build_updated_answer(chair.subject_name, nil)]
 
-    expect(answers).to match_array [answer]
-  end
+      subject.update_answers(student, survey, answer_attributes)
 
-  it 'Filters out the answers from another survey' do
-    another_survey = create(:survey)
-    create(:answer, survey: another_survey, student: student, chair: build(:chair))
+      expect(answer.reload.chair_id).to eq chair.id
+    end
 
-    answers = subject.obtain_answers(survey, student)
+    it 'When the selection is an invalid chair id, we raise an error' do
+      unknown_chair_id = 9999
+      create(:answer, survey: survey, student: student, chair: chair)
+      answer_attributes = [build_updated_answer(chair.subject_name, unknown_chair_id)]
 
-    expect(answers).to be_empty
+      expect do
+        subject.update_answers(student, survey, answer_attributes)
+      end.to raise_error described_class::INVALID_ANSWER
+    end
+
+    it 'When there are no updated answers, we do nothing' do
+      answer = create(:answer, survey: survey, student: student, chair: chair)
+      answer_attributes = []
+
+      subject.update_answers(student, survey, answer_attributes)
+
+      expect(answer.reload.chair_id).to eq chair.id
+    end
+
+    it 'Changes the answer with a chair from a reply option destroying it' do
+      reply_option = create(:reply_option, subject: chair.subject)
+      answer = create(:answer, survey: survey, student: student, reply_option: reply_option)
+      answer_attributes = [build_updated_answer(chair.subject_name, chair.id)]
+
+      subject.update_answers(student, survey, answer_attributes)
+
+      expect(answer.reload.chair_id).to eq chair.id
+      expect(answer.reload.reply_option).to be_nil
+    end
+
+    it 'Changes the answer from a chair to a reply option' do
+      answer = create(:answer, survey: survey, student: student, chair: chair)
+      answer_attributes = [build_updated_answer(chair.subject_name, 'cant')]
+
+      subject.update_answers(student, survey, answer_attributes)
+
+      expect(answer.reload.chair).to be_nil
+      expect(answer.reload.reply_option).to be_present
+    end
+
+    def build_updated_answer(subject_name, selection)
+      { name: subject_name, selectedChair: selection }
+    end
   end
 end

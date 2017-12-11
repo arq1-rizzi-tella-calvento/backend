@@ -15,4 +15,8 @@ class Answer < ApplicationRecord
       { name: chair.subject.name, selection: chair.time }
     end
   end
+
+  def subject_name
+    reply_option.try(:subject_name) || chair.subject_name
+  end
 end

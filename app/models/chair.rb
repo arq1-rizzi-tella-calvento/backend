@@ -16,4 +16,8 @@ class Chair < ApplicationRecord
   def fullness_percentage
     number_of_students * 100 / quota
   end
+
+  def subject_name
+    subject.name
+  end
 end
