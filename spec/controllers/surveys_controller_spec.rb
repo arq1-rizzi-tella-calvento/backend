@@ -91,7 +91,7 @@ describe SurveysController do
       get :edit, params: { id: student.token }
       survey_subject = response_body.detect { |subject| subject[:name] == @a_subject.name }
 
-      expect(survey_subject[:selected]).to eq @a_chair.time
+      expect(survey_subject[:selected]).to eq @a_chair.id
     end
   end
 

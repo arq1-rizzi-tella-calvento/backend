@@ -55,7 +55,7 @@ class SurveysController < ApplicationController
     answers_info = answers.map(&:choice_info)
     build_survey(subjects).map do |survey_subject|
       answer = answers_info.detect { |info| info[:name] == survey_subject[:name] }
-      survey_subject.tap { |subject| subject[:selected] = answer[:selection] if answer.present? }
+      survey_subject.tap { |subject| subject[:selected] = answer[:selected] if answer.present? }
     end
   end
 end
