@@ -1,11 +1,15 @@
 module SurveyService
-  def generate_success_message(success_message)
+  def generate_success_message(success_message, edit_link)
     success_message = if success_message.empty?
-                        { subjects: [], link: 'link para editar la encuesta' }
+                        { subjects: [], link: edit_link }
                       else
-                        { subjects: success_message, link: 'link para editar la encuesta' }
+                        { subjects: success_message, link: edit_link }
                       end
     success_message.to_json
+  end
+
+  def generate_link(server_name, token)
+    "#{server_name}/survey/#{token}/edit"
   end
 
   def generate_survey(student, success_message)
@@ -41,7 +45,7 @@ module SurveyService
   end
 
   def chair_description(chair)
-    'C' + chair.number.to_s + ' - ' + chair.time
+    "C#{chair.number} - #{chair.time}"
   end
 
   def find_chair_by_student_answer(answer, student_answer)

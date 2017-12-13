@@ -5,7 +5,8 @@ class SurveysController < ApplicationController
     success_message = []
     student = academic_record.find_student_with(token: params[:userId])
     success_message = generate_survey(student, success_message)
-    render json: generate_success_message(success_message), status: :ok
+    edit_link = generate_link(@_request.origin, student.token)
+    render json: generate_success_message(success_message, edit_link), status: :ok
   end
 
   def new
