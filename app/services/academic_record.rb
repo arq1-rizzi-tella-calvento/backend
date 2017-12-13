@@ -15,16 +15,21 @@ class AcademicRecord
   end
 
   def survey_summary
-    Survey.includes(subject_in_quarters: { chairs: :answers }).last.subject_in_quarters.flat_map do |subject|
-      chairs = subject.chairs.map do |chair|
+    Survey.includes(subject_in_quarters: { chairs: :answers }).last.subject_in_quarters.map do |subject|
+      chairs_data = subject.chairs.map do |chair|
         {
-          name: subject.name,
           chair: chair.number,
           number_of_students: chair.number_of_students,
           fullness_percentage: chair.fullness_percentage
         }
       end
-      chairs.sort_by { |data| data[:chair] }
+
+      chairs_data.sort_by! { |data| data[:chair] }
+
+      {
+        name: subject.name,
+        chairs: chairs_data
+      }
     end
   end
 
