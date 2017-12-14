@@ -17,8 +17,9 @@ class SurveySubmissions
         next unless new_answer && new_answer[:selectedChair]
 
         selection = new_answer[:selectedChair]
-        schedule_conflict?(selection) ? edited_with_conflict(answer) : edited_with_chair(answer, selection)
+        answer.destroy! && next if not_this_quarter?(selection)
 
+        schedule_conflict?(selection) ? edited_with_conflict(answer) : edited_with_chair(answer, selection)
         answer.save!
       end
     end
@@ -26,8 +27,12 @@ class SurveySubmissions
 
   private
 
+  def not_this_quarter?(selection)
+    selection == Answer::NOT_THIS_QUARTER
+  end
+
   def schedule_conflict?(selection)
-    selection == 'cant'
+    selection == Answer::SCHEDULE_PROBLEM
   end
 
   def edited_with_chair(answer, selected_chair)

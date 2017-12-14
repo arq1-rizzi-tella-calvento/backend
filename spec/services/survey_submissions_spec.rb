@@ -73,12 +73,19 @@ describe SurveySubmissions do
 
     it 'Changes the answer from a chair to a reply option' do
       answer = create(:answer, survey: survey, student: student, chair: chair)
-      answer_attributes = [build_updated_answer(chair.subject_name, 'cant')]
+      answer_attributes = [build_updated_answer(chair.subject_name, Answer::SCHEDULE_PROBLEM)]
 
       subject.update_answers(student, survey, answer_attributes)
 
       expect(answer.reload.chair).to be_nil
       expect(answer.reload.reply_option).to be_present
+    end
+
+    it 'xxxx' do
+      create(:answer, survey: survey, student: student, chair: chair)
+      answer_attributes = [build_updated_answer(chair.subject_name, Answer::NOT_THIS_QUARTER)]
+
+      expect { subject.update_answers(student, survey, answer_attributes) }.to change { Answer.count }.to 0
     end
 
     def build_updated_answer(subject_name, selection)
