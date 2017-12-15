@@ -12,20 +12,36 @@ class SurveySubmissions
 
   def update_answers(student, survey, new_submission_args)
     ActiveRecord::Base.transaction do
-      obtain_answers(survey, student).each do |answer|
-        new_answer = new_submission_args.detect { |arg| arg[:name] == answer.subject_name }
-        next unless new_answer && new_answer[:selectedChair]
-
-        selection = new_answer[:selectedChair]
-        answer.destroy! && next if not_this_quarter?(selection)
-
-        schedule_conflict?(selection) ? edited_with_conflict(answer) : edited_with_chair(answer, selection)
-        answer.save!
+      student_answers = obtain_answers(survey, student)
+      new_answers = new_submission_args.select do |arg|
+        arg[:selectedChair].present? && student_answers.none? { |answer| answer.subject_name == arg[:name] }
       end
+
+      edit_answers(student_answers, new_submission_args - new_answers)
+      create_new_answers(new_answers, survey, student)
     end
   end
 
   private
+
+  def create_new_answers(new_answers, survey, student)
+    new_answers.each do |answer|
+      Answer.create!(survey: survey, student: student, chair: obtain_chair(answer[:selectedChair]))
+    end
+  end
+
+  def edit_answers(student_answers, new_submission_args)
+    student_answers.each do |answer|
+      new_answer = new_submission_args.detect { |arg| arg[:name] == answer.subject_name }
+      next unless new_answer && new_answer[:selectedChair]
+      selection = new_answer[:selectedChair]
+
+      answer.destroy! && next if not_this_quarter?(selection)
+      schedule_conflict?(selection) ? edited_with_conflict(answer) : edited_with_chair(answer, selection)
+
+      answer.save!
+    end
+  end
 
   def not_this_quarter?(selection)
     selection == Answer::NOT_THIS_QUARTER
@@ -36,14 +52,18 @@ class SurveySubmissions
   end
 
   def edited_with_chair(answer, selected_chair)
-    answer.chair = Chair.find(selected_chair)
+    answer.chair = obtain_chair(selected_chair)
     answer.reply_option.try(:destroy!)
-  rescue ActiveRecord::RecordNotFound
-    raise INVALID_ANSWER
   end
 
   def edited_with_conflict(answer)
     answer.reply_option = ReplyOption.with_conflicting_schedules(answer.chair.subject)
     answer.chair = nil
+  end
+
+  def obtain_chair(selected_chair)
+    Chair.find(selected_chair)
+  rescue ActiveRecord::RecordNotFound
+    raise INVALID_ANSWER
   end
 end

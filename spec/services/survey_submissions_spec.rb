@@ -81,11 +81,22 @@ describe SurveySubmissions do
       expect(answer.reload.reply_option).to be_present
     end
 
-    it 'xxxx' do
+    it 'When the answer changes to dont, we delete the answer' do
       create(:answer, survey: survey, student: student, chair: chair)
       answer_attributes = [build_updated_answer(chair.subject_name, Answer::NOT_THIS_QUARTER)]
 
       expect { subject.update_answers(student, survey, answer_attributes) }.to change { Answer.count }.to 0
+    end
+
+    it 'When the answer is not registered, we create a new one' do
+      answer_attributes = [build_updated_answer(chair.subject_name, chair.id)]
+
+      subject.update_answers(student, survey, answer_attributes)
+      created_answer = Answer.last
+
+      expect(created_answer.chair).to eq chair
+      expect(created_answer.student).to eq student
+      expect(created_answer.survey).to eq survey
     end
 
     def build_updated_answer(subject_name, selection)
