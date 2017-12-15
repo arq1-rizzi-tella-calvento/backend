@@ -31,6 +31,7 @@ module SurveyService
   def submit_answer(current_subject, student_answer, subject, success_message, student_id)
     Answer.new.tap do |answer|
       answer.student_id = student_id
+      answer.survey_id = last_survey_id
       if student_answer == Answer::SCHEDULE_PROBLEM
         answer.reply_option = generate_reply_option(current_subject)
       else
@@ -46,6 +47,10 @@ module SurveyService
 
   def chair_description(chair)
     "C#{chair.number} - #{chair.time}"
+  end
+
+  def last_survey_id
+    @survey_id ||= Survey.pluck(:id).last
   end
 
   def find_chair_by_student_answer(answer, student_answer)
