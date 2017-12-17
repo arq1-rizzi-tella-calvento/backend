@@ -14,6 +14,8 @@ describe SigninController do
       get :show, params: { id: student.token }
 
       expect(response_body[:token]).to eq student.token
+      expect(response_body[:name]).to eq student.name
+      expect(response_body[:identity_document]).to eq student.identity_document
     end
   end
 end
