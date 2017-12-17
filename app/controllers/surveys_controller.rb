@@ -4,11 +4,10 @@ class SurveysController < ApplicationController
   rescue_from SurveySubmissions::ExpiredSurveyPeriodError, with: :no_active_survey
 
   def create
-    success_message = []
-    student = academic_record.find_student_with(token: params[:userId])
-    success_message = generate_survey(student, success_message)
-    edit_link = generate_link(@_request.origin, student.token)
-    render json: generate_success_message(success_message, edit_link), status: :ok
+    survey = survey_submissions.find_survey(survey_args[:surveyId])
+    answers = survey_submissions.create_answers(student, survey, survey_args[:subjects])
+
+    render json: generate_survey_response(answers, student), status: :ok
   end
 
   def new
@@ -31,7 +30,7 @@ class SurveysController < ApplicationController
   end
 
   def update
-    survey = find_survey(survey_args[:surveyId])
+    survey = survey_submissions.find_survey(survey_args[:surveyId])
     survey_submissions.update_answers(student, survey, survey_args[:subjects])
 
     head :ok

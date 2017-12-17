@@ -11,13 +11,20 @@ class SurveySubmissions
     survey.subjects.where.not(id: approved_subject_ids)
   end
 
+  def create_answers(student, survey, new_submission_args)
+    ActiveRecord::Base.transaction do
+      answers_to_create = new_submission_args.reject { |data| not_this_quarter?(data[:selectedChair]) }
+      build_new_answers(answers_to_create, survey, student)
+    end
+  end
+
   def update_answers(student, survey, new_submission_args)
     ActiveRecord::Base.transaction do
       student_answers = obtain_answers(survey, student)
       new_answers = new_submission_args.select { |answer_data| new_answer?(student_answers, answer_data) }
 
       edit_answers(student_answers, new_submission_args - new_answers)
-      build_new_answers(new_answers, survey, student).map(&:save!)
+      build_new_answers(new_answers, survey, student)
     end
   end
 
@@ -25,6 +32,12 @@ class SurveySubmissions
     Survey.includes(subjects: :chairs).select(:id).active.last.tap do |survey|
       raise ExpiredSurveyPeriodError if survey.blank?
     end
+  end
+
+  def find_survey(survey_id)
+    @survey_id ||= Survey.find(survey_id)
+  rescue ActiveRecord::RecordNotFound
+    raise SurveySubmissions::ExpiredSurveyPeriodError
   end
 
   private
@@ -35,6 +48,8 @@ class SurveySubmissions
         selection = answer_data[:selectedChair]
         name = answer_data[:name]
         schedule_conflict?(selection) ? with_conflict(answer, find_subject(name)) : with_chair(answer, selection)
+
+        answer.save!
       end
     end
   end
@@ -81,7 +96,8 @@ class SurveySubmissions
   end
 
   def new_answer?(previous_answers, answer_data)
-    answer_data[:selectedChair].present? && answer_data[:selectedChair] != Answer::NOT_THIS_QUARTER &&
+    selection = answer_data[:selectedChair]
+    selection.present? && !not_this_quarter?(selection) &&
       previous_answers.none? { |answer| answer.subject_name == answer_data[:name] }
   end
 end

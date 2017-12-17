@@ -12,7 +12,7 @@ class Answer < ApplicationRecord
   validates_presence_of :chair, if: -> { reply_option.blank? }
 
   def choice_info
-    { name: subject_name, selected: chair.try(:id) || SCHEDULE_PROBLEM }
+    { name: subject_name, selected: selection }
   end
 
   def subject_name
@@ -21,5 +21,9 @@ class Answer < ApplicationRecord
 
   def subject
     chair.try(:subject) || reply_option.subject
+  end
+
+  def selection
+    chair.try(:id) || SCHEDULE_PROBLEM
   end
 end

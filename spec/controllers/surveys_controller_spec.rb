@@ -14,7 +14,7 @@ describe SurveysController do
   context 'POST #create' do
     let(:subjects) { [{ name: create(:subject).name, chairs: [], selectedChair: Answer::NOT_THIS_QUARTER }] }
     let(:other_subjects) { [{ name: create(:subject).name, chairs: [chair], selectedChair: chair.id }] }
-    let(:survey_payload) { { subjects: subjects, userId: student.token, surveyId: survey.id } }
+    let(:survey_payload) { { subjects: subjects, token: student.token, surveyId: survey.id } }
 
     it 'creates no Answer because the student doesnt select chairs' do
       expect { post :create, params: survey_payload }.to change { Answer.count }.by(0)
