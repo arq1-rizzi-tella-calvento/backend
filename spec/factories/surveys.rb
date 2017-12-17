@@ -1,13 +1,16 @@
 FactoryBot.define do
   factory :survey do
-    start_date Date.new(2017, 3, 1)
-    end_date Date.new(2017, 3, 10)
+    start_date 1.week.ago
+    end_date 2.weeks.from_now
     quarter 1
 
     trait :for_second_quarter do
-      start_date Date.new(2017, 8, 1)
-      end_date Date.new(2017, 8, 10)
       quarter 2
+    end
+
+    trait :ended do
+      start_date 2.weeks.ago
+      end_date 1.weeks.ago
     end
   end
 end

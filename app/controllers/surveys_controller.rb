@@ -1,6 +1,8 @@
 class SurveysController < ApplicationController
   include SurveyService
 
+  rescue_from SurveySubmissions::ExpiredSurveyPeriodError, with: :no_active_survey
+
   def create
     success_message = []
     student = academic_record.find_student_with(token: params[:userId])
@@ -10,7 +12,8 @@ class SurveysController < ApplicationController
   end
 
   def new
-    survey_subjects = survey_submissions.last_survey_subjects(student)
+    survey = survey_submissions.current_survey
+    survey_subjects = survey_subjects(survey, student)
 
     render json: build_survey(survey_subjects), status: :ok
   rescue ActiveRecord::RecordNotFound
@@ -18,22 +21,22 @@ class SurveysController < ApplicationController
   end
 
   def edit
-    survey = Survey.select(:id).last
-    answers = survey_submissions.obtain_answers(survey, student)
+    survey = survey_submissions.current_survey
+    answers = survey_submissions.obtain_answers(survey_submissions.current_survey, student)
     head(:not_found) && return if answers.empty?
 
-    render json: build_editable_survey(answers, survey_submissions.last_survey_subjects(student)), status: :ok
+    render json: build_editable_survey(answers, survey_subjects(survey, student)), status: :ok
   rescue ActiveRecord::RecordNotFound
     head :unauthorized
   end
 
   def update
-    student
-    survey_submissions.update_answers(student, Survey.select(:id).last, survey_args)
+    survey_submissions.update_answers(student, survey_submissions.current_survey, survey_args)
+
     head :ok
   rescue ActiveRecord::RecordNotFound
     head :unauthorized
-  rescue survey_submissions::INVALID_ANSWER
+  rescue SurveySubmissions::INVALID_ANSWER
     head :bad_request
   end
 
@@ -58,5 +61,13 @@ class SurveysController < ApplicationController
       answer = answers_info.detect { |info| info[:name] == survey_subject[:name] }
       survey_subject.tap { |subject| subject[:selected] = answer[:selected] if answer.present? }
     end
+  end
+
+  def survey_subjects(survey, student)
+    survey_submissions.last_survey_subjects(survey, student)
+  end
+
+  def no_active_survey
+    render json: { msg: 'No se pudo encontrar la encuesta' }, status: :not_found
   end
 end

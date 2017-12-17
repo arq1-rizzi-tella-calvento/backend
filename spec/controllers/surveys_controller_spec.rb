@@ -2,12 +2,22 @@ require 'rails_helper'
 include SurveyService
 
 describe SurveysController do
+  let(:subject_in_quarter) { build(:subject_in_quarter, survey: survey) }
   let(:student) { create(:student) }
+  let(:chair) { build(:chair, subject_in_quarter: subject_in_quarter) }
+  let(:second_chair) { build(:chair, subject_in_quarter: subject_in_quarter) }
+  let(:survey) { build(:survey) }
+  let!(:subject) { create(:subject, subject_in_quarter: subject_in_quarter) }
+
+  before do
+    subject_in_quarter.chairs = [chair, second_chair]
+  end
 
   context 'POST #create' do
     let(:subjects) { [{ name: create(:subject).name, chairs: [], selectedChair: Answer::NOT_THIS_QUARTER }] }
-    let(:a_chair) { @a_chair = create(:chair) }
-    let(:other_subjects) { [{ name: create(:subject).name, chairs: [@a_chair], selectedChair: @a_chair.id }] }
+    let(:survey) { create :survey }
+    let(:chair) { create(:chair, subject_in_quarter: create(:subject_in_quarter, survey: survey)) }
+    let(:other_subjects) { [{ name: create(:subject).name, chairs: [chair], selectedChair: chair.id }] }
 
     it 'returns a 200 status code' do
       post :create, params: { subjects: subjects, userId: student.token }
@@ -26,31 +36,22 @@ describe SurveysController do
     end
   end
 
-  before do
-    @a_chair = create(:chair)
-    @a_second_chair = create(:chair)
-    subject_in_quarter = create(:subject_in_quarter, chairs: [@a_chair, @a_second_chair])
-
-    @a_subject = create(:subject, subject_in_quarter: subject_in_quarter)
-    @a_survey = create(:survey, subjects: [@a_subject])
-  end
-
   context 'GET #new' do
     it 'Returns the subjects with their chairs' do
       get_new_survey student
 
-      survey_subject = response_body.detect { |subject| subject[:name] == @a_subject.name }
+      survey_subject = response_body.detect { |a_subject| a_subject[:name] == subject.name }
       expect(
         survey_subject[:chairs]
       )
         .to match_array [
-          { id: @a_chair.id, time: chair_description(@a_chair) },
-          { id: @a_second_chair.id, time: chair_description(@a_second_chair) }
+          { id: chair.id, time: chair_description(chair) },
+          { id: second_chair.id, time: chair_description(second_chair) }
         ]
     end
 
     it 'Only returns the subjects that the student hasnt approved yet' do
-      student_with_approved_subjects = create(:student, subjects: [@a_subject])
+      student_with_approved_subjects = create(:student, subjects: [subject])
 
       get_new_survey student_with_approved_subjects
 
@@ -63,6 +64,16 @@ describe SurveysController do
       get_new_survey unexistent_student_id
 
       expect(response.status).to eq 404
+    end
+
+    context 'when the survey submission period has finished' do
+      let(:survey) { build :survey, :ended }
+
+      it 'returns a bad request' do
+        get_new_survey student
+
+        expect(response.status).to eq 404
+      end
     end
 
     def get_new_survey(student)
@@ -86,12 +97,12 @@ describe SurveysController do
     end
 
     it 'Returns a new survey with the previously selected options' do
-      create(:answer, survey: @a_survey, chair: @a_chair, student: student)
+      create(:answer, survey: survey, chair: chair, student: student)
 
       get :edit, params: { id: student.token }
-      survey_subject = response_body.detect { |subject| subject[:name] == @a_subject.name }
+      survey_subject = response_body.detect { |a_subject| a_subject[:name] == subject.name }
 
-      expect(survey_subject[:selected]).to eq @a_chair.id
+      expect(survey_subject[:selected]).to eq chair.id
     end
   end
 
@@ -105,12 +116,12 @@ describe SurveysController do
     end
 
     it 'Updates existing answers from a student' do
-      answer = create(:answer, survey: @a_survey, chair: @a_chair, student: student)
-      updated_answers = [{ name: @a_chair.subject.name, selectedChair: @a_second_chair.id }]
+      answer = create(:answer, survey: survey, chair: chair, student: student)
+      updated_answers = [{ name: chair.subject.name, selectedChair: second_chair.id }]
 
       put :update, params: { id: student.token, subjects: updated_answers }
 
-      expect(answer.reload.chair_id).to eq @a_second_chair.id
+      expect(answer.reload.chair_id).to eq second_chair.id
     end
   end
 end

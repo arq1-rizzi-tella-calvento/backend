@@ -1,13 +1,14 @@
 class SurveySubmissions
   INVALID_ANSWER = Class.new(StandardError)
+  ExpiredSurveyPeriodError = Class.new(StandardError)
 
   def obtain_answers(survey, student)
     Answer.where(survey_id: survey.id, student_id: student.id)
   end
 
-  def last_survey_subjects(student)
+  def last_survey_subjects(survey, student)
     approved_subject_ids = student.subjects.pluck(:id)
-    Survey.includes(subjects: :chairs).last.subjects.where.not(id: approved_subject_ids)
+    survey.subjects.where.not(id: approved_subject_ids)
   end
 
   def update_answers(student, survey, new_submission_args)
@@ -19,6 +20,12 @@ class SurveySubmissions
 
       edit_answers(student_answers, new_submission_args - new_answers)
       create_new_answers(new_answers, survey, student)
+    end
+  end
+
+  def current_survey
+    Survey.includes(subjects: :chairs).select(:id).active.last.tap do |survey|
+      raise ExpiredSurveyPeriodError if survey.blank?
     end
   end
 

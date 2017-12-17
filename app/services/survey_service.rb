@@ -50,7 +50,9 @@ module SurveyService
   end
 
   def last_survey_id
-    @survey_id ||= Survey.pluck(:id).last
+    @survey_id ||= Survey.active.pluck(:id).last.tap do |survey|
+      raise ExpiredSurveyPeriodError if survey.blank?
+    end
   end
 
   def find_chair_by_student_answer(answer, student_answer)
