@@ -4,34 +4,24 @@ include SurveyService
 describe SurveysController do
   let(:subject_in_quarter) { build(:subject_in_quarter, survey: survey) }
   let(:student) { create(:student) }
-  let(:chair) { build(:chair, subject_in_quarter: subject_in_quarter) }
-  let(:second_chair) { build(:chair, subject_in_quarter: subject_in_quarter) }
-  let(:survey) { build(:survey) }
+  let(:chair) { create(:chair, subject_in_quarter: subject_in_quarter) }
+  let(:second_chair) { create(:chair, subject_in_quarter: subject_in_quarter) }
+  let(:survey) { create(:survey) }
   let!(:subject) { create(:subject, subject_in_quarter: subject_in_quarter) }
 
-  before do
-    subject_in_quarter.chairs = [chair, second_chair]
-  end
+  before { subject_in_quarter.chairs = [chair, second_chair] }
 
   context 'POST #create' do
     let(:subjects) { [{ name: create(:subject).name, chairs: [], selectedChair: Answer::NOT_THIS_QUARTER }] }
-    let(:survey) { create :survey }
-    let(:chair) { create(:chair, subject_in_quarter: create(:subject_in_quarter, survey: survey)) }
     let(:other_subjects) { [{ name: create(:subject).name, chairs: [chair], selectedChair: chair.id }] }
-
-    it 'returns a 200 status code' do
-      post :create, params: { subjects: subjects, userId: student.token }
-
-      expect(response.status).to eq 200
-    end
+    let(:survey_payload) { { subjects: subjects, userId: student.token, surveyId: survey.id } }
 
     it 'creates no Answer because the student doesnt select chairs' do
-      expect { post :create, params: { subjects: subjects, userId: student.token } }
-        .to change { Answer.count }.by(0)
+      expect { post :create, params: survey_payload }.to change { Answer.count }.by(0)
     end
 
     it 'creates an Answer per subject' do
-      expect { post :create, params: { subjects: other_subjects, userId: student.token } }
+      expect { post :create, params: survey_payload.merge(subjects: other_subjects) }
         .to change { Answer.count }.by(other_subjects.count)
     end
   end
@@ -40,14 +30,10 @@ describe SurveysController do
     it 'Returns the subjects with their chairs' do
       get_new_survey student
 
-      survey_subject = response_body.detect { |a_subject| a_subject[:name] == subject.name }
-      expect(
-        survey_subject[:chairs]
-      )
-        .to match_array [
-          { id: chair.id, time: chair_description(chair) },
-          { id: second_chair.id, time: chair_description(second_chair) }
-        ]
+      survey_subject = response_body[:subjects].detect { |a_subject| a_subject[:name] == subject.name }
+      expect(survey_subject[:chairs]).to match_array [
+        { id: chair.id, time: chair_description(chair) }, { id: second_chair.id, time: chair_description(second_chair) }
+      ]
     end
 
     it 'Only returns the subjects that the student hasnt approved yet' do
@@ -55,7 +41,7 @@ describe SurveysController do
 
       get_new_survey student_with_approved_subjects
 
-      expect(response_body).to be_empty
+      expect(response_body[:subjects]).to be_empty
     end
 
     it 'Returns a not found when the student is unknown' do
@@ -64,6 +50,12 @@ describe SurveysController do
       get_new_survey unexistent_student_id
 
       expect(response.status).to eq 404
+    end
+
+    it 'The survey id is retrieved for a survey' do
+      get_new_survey student
+
+      expect(response_body[:survey_id]).to eq survey.id
     end
 
     context 'when the survey submission period has finished' do
@@ -100,9 +92,17 @@ describe SurveysController do
       create(:answer, survey: survey, chair: chair, student: student)
 
       get :edit, params: { id: student.token }
-      survey_subject = response_body.detect { |a_subject| a_subject[:name] == subject.name }
+      survey_subject = response_body[:subjects].detect { |a_subject| a_subject[:name] == subject.name }
 
       expect(survey_subject[:selected]).to eq chair.id
+    end
+
+    it 'Returns the survey id' do
+      create(:answer, survey: survey, chair: chair, student: student)
+
+      get :edit, params: { id: student.token }
+
+      expect(response_body[:survey_id]).to eq survey.id
     end
   end
 
@@ -110,7 +110,7 @@ describe SurveysController do
     it 'Returns a 401 when the student is unknown' do
       unknown_student_token = 'a_token'
 
-      put :update, params: { id: unknown_student_token }
+      put :update, params: { id: unknown_student_token, surveyId: survey.id }
 
       expect(response.status).to eq 401
     end
@@ -119,7 +119,7 @@ describe SurveysController do
       answer = create(:answer, survey: survey, chair: chair, student: student)
       updated_answers = [{ name: chair.subject.name, selectedChair: second_chair.id }]
 
-      put :update, params: { id: student.token, subjects: updated_answers }
+      put :update, params: { id: student.token, subjects: updated_answers, surveyId: survey.id }
 
       expect(answer.reload.chair_id).to eq second_chair.id
     end

@@ -15,7 +15,7 @@ class SurveysController < ApplicationController
     survey = survey_submissions.current_survey
     survey_subjects = survey_subjects(survey, student)
 
-    render json: build_survey(survey_subjects), status: :ok
+    render json: build_survey(survey, survey_subjects), status: :ok
   rescue ActiveRecord::RecordNotFound
     head :not_found
   end
@@ -25,13 +25,14 @@ class SurveysController < ApplicationController
     answers = survey_submissions.obtain_answers(survey_submissions.current_survey, student)
     head(:not_found) && return if answers.empty?
 
-    render json: build_editable_survey(answers, survey_subjects(survey, student)), status: :ok
+    render json: build_editable_survey(answers, survey_subjects(survey, student), survey), status: :ok
   rescue ActiveRecord::RecordNotFound
     head :unauthorized
   end
 
   def update
-    survey_submissions.update_answers(student, survey_submissions.current_survey, survey_args)
+    survey = find_survey(survey_args[:surveyId])
+    survey_submissions.update_answers(student, survey, survey_args[:subjects])
 
     head :ok
   rescue ActiveRecord::RecordNotFound
@@ -43,7 +44,7 @@ class SurveysController < ApplicationController
   private
 
   def survey_args
-    params.permit(subjects: %i[name selectedChair])[:subjects]
+    params.permit(:surveyId, subjects: %i[name selectedChair])
   end
 
   def survey_submissions
@@ -53,14 +54,6 @@ class SurveysController < ApplicationController
   def student
     token = params[:token] || params[:id]
     @student ||= Student.includes(:subjects).find_by!(token: token)
-  end
-
-  def build_editable_survey(answers, subjects)
-    answers_info = answers.map(&:choice_info)
-    build_survey(subjects).map do |survey_subject|
-      answer = answers_info.detect { |info| info[:name] == survey_subject[:name] }
-      survey_subject.tap { |subject| subject[:selected] = answer[:selected] if answer.present? }
-    end
   end
 
   def survey_subjects(survey, student)
