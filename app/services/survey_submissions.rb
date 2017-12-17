@@ -1,6 +1,7 @@
 class SurveySubmissions
   INVALID_ANSWER = Class.new(StandardError)
   ExpiredSurveyPeriodError = Class.new(StandardError)
+  InvalidSurveyActionError = Class.new(StandardError)
 
   def obtain_answers(survey, student)
     Answer.where(survey_id: survey.id, student_id: student.id)
@@ -12,6 +13,8 @@ class SurveySubmissions
   end
 
   def create_answers(student, survey, new_submission_args)
+    raise InvalidSurveyActionError if obtain_answers(survey, student).exists?
+
     ActiveRecord::Base.transaction do
       answers_to_create = new_submission_args.reject { |data| not_this_quarter?(data[:selectedChair]) }
       build_new_answers(answers_to_create, survey, student)
@@ -46,8 +49,8 @@ class SurveySubmissions
     new_answers.map do |answer_data|
       Answer.new(survey: survey, student: student).tap do |answer|
         selection = answer_data[:selectedChair]
-        name = answer_data[:name]
-        schedule_conflict?(selection) ? with_conflict(answer, find_subject(name)) : with_chair(answer, selection)
+        subject = find_subject(answer_data[:name])
+        update_answer(answer, subject, selection)
 
         answer.save!
       end
@@ -61,10 +64,14 @@ class SurveySubmissions
       selection = new_answer[:selectedChair]
 
       answer.destroy! && next if not_this_quarter?(selection)
-      schedule_conflict?(selection) ? with_conflict(answer, answer.subject) : with_chair(answer, selection)
+      update_answer(answer, answer.subject, selection)
 
       answer.save!
     end
+  end
+
+  def update_answer(answer, subject, selection)
+    schedule_conflict?(selection) ? with_conflict(answer, subject) : with_chair(answer, selection)
   end
 
   def not_this_quarter?(selection)

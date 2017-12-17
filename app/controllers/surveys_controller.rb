@@ -1,13 +1,17 @@
 class SurveysController < ApplicationController
   include SurveyService
 
-  rescue_from SurveySubmissions::ExpiredSurveyPeriodError, with: :no_active_survey
+  rescue_from ActiveRecord::RecordNotFound, with: -> { head :unauthorized }
 
   def create
     survey = survey_submissions.find_survey(survey_args[:surveyId])
     answers = survey_submissions.create_answers(student, survey, survey_args[:subjects])
 
     render json: generate_survey_response(answers, student), status: :ok
+  rescue SurveySubmissions::INVALID_ANSWER
+    invalid_chair
+  rescue SurveySubmissions::InvalidSurveyActionError
+    render json: { msg: 'Usted ya completo la encuesta, por favor use el link de editar' }, status: :bad_request
   end
 
   def new
@@ -15,8 +19,8 @@ class SurveysController < ApplicationController
     survey_subjects = survey_subjects(survey, student)
 
     render json: build_survey(survey, survey_subjects), status: :ok
-  rescue ActiveRecord::RecordNotFound
-    head :not_found
+  rescue SurveySubmissions::ExpiredSurveyPeriodError
+    no_active_survey
   end
 
   def edit
@@ -25,8 +29,8 @@ class SurveysController < ApplicationController
     head(:not_found) && return if answers.empty?
 
     render json: build_editable_survey(answers, survey_subjects(survey, student), survey), status: :ok
-  rescue ActiveRecord::RecordNotFound
-    head :unauthorized
+  rescue SurveySubmissions::ExpiredSurveyPeriodError
+    no_active_survey
   end
 
   def update
@@ -34,10 +38,8 @@ class SurveysController < ApplicationController
     survey_submissions.update_answers(student, survey, survey_args[:subjects])
 
     head :ok
-  rescue ActiveRecord::RecordNotFound
-    head :unauthorized
   rescue SurveySubmissions::INVALID_ANSWER
-    head :bad_request
+    invalid_chair
   end
 
   private
@@ -61,5 +63,9 @@ class SurveysController < ApplicationController
 
   def no_active_survey
     render json: { msg: 'No se pudo encontrar la encuesta' }, status: :not_found
+  end
+
+  def invalid_chair
+    render json: { msg: 'Ha seleccionado una catedra invalida' }, status: :bad_request
   end
 end
