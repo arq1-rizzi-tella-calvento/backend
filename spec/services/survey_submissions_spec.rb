@@ -99,6 +99,27 @@ describe SurveySubmissions do
       expect(created_answer.survey).to eq survey
     end
 
+    it 'We create a new answer with a reply option when the user selects a schedule problem' do
+      answer_attributes = [build_updated_answer(chair.subject_name, Answer::SCHEDULE_PROBLEM)]
+
+      subject.update_answers(student, survey, answer_attributes)
+      created_answer = Answer.last
+
+      expect(created_answer.chair).to be_nil
+      expect(created_answer.reply_option).to be_present
+      expect(created_answer.student).to eq student
+      expect(created_answer.survey).to eq survey
+    end
+
+    it 'We do not create a new answer when the option is not this quarter' do
+      answer_attributes = [build_updated_answer(chair.subject_name, Answer::NOT_THIS_QUARTER)]
+
+      subject.update_answers(student, survey, answer_attributes)
+      created_answer = Answer.last
+
+      expect(created_answer).to be_nil
+    end
+
     def build_updated_answer(subject_name, selection)
       { name: subject_name, selectedChair: selection }
     end

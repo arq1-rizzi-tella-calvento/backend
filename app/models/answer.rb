@@ -18,4 +18,8 @@ class Answer < ApplicationRecord
   def subject_name
     reply_option.try(:subject_name) || chair.subject_name
   end
+
+  def subject
+    chair.try(:subject) || reply_option.subject
+  end
 end

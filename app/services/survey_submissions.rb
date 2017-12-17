@@ -14,12 +14,10 @@ class SurveySubmissions
   def update_answers(student, survey, new_submission_args)
     ActiveRecord::Base.transaction do
       student_answers = obtain_answers(survey, student)
-      new_answers = new_submission_args.select do |arg|
-        arg[:selectedChair].present? && student_answers.none? { |answer| answer.subject_name == arg[:name] }
-      end
+      new_answers = new_submission_args.select { |answer_data| new_answer?(student_answers, answer_data) }
 
       edit_answers(student_answers, new_submission_args - new_answers)
-      create_new_answers(new_answers, survey, student)
+      build_new_answers(new_answers, survey, student).map(&:save!)
     end
   end
 
@@ -31,9 +29,13 @@ class SurveySubmissions
 
   private
 
-  def create_new_answers(new_answers, survey, student)
-    new_answers.each do |answer|
-      Answer.create!(survey: survey, student: student, chair: obtain_chair(answer[:selectedChair]))
+  def build_new_answers(new_answers, survey, student)
+    new_answers.map do |answer_data|
+      Answer.new(survey: survey, student: student).tap do |answer|
+        selection = answer_data[:selectedChair]
+        name = answer_data[:name]
+        schedule_conflict?(selection) ? with_conflict(answer, find_subject(name)) : with_chair(answer, selection)
+      end
     end
   end
 
@@ -44,7 +46,7 @@ class SurveySubmissions
       selection = new_answer[:selectedChair]
 
       answer.destroy! && next if not_this_quarter?(selection)
-      schedule_conflict?(selection) ? edited_with_conflict(answer) : edited_with_chair(answer, selection)
+      schedule_conflict?(selection) ? with_conflict(answer, answer.subject) : with_chair(answer, selection)
 
       answer.save!
     end
@@ -58,13 +60,13 @@ class SurveySubmissions
     selection == Answer::SCHEDULE_PROBLEM
   end
 
-  def edited_with_chair(answer, selected_chair)
+  def with_chair(answer, selected_chair)
     answer.chair = obtain_chair(selected_chair)
     answer.reply_option.try(:destroy!)
   end
 
-  def edited_with_conflict(answer)
-    answer.reply_option = ReplyOption.with_conflicting_schedules(answer.chair.subject)
+  def with_conflict(answer, subject)
+    answer.reply_option = ReplyOption.with_conflicting_schedules(subject)
     answer.chair = nil
   end
 
@@ -72,5 +74,14 @@ class SurveySubmissions
     Chair.find(selected_chair)
   rescue ActiveRecord::RecordNotFound
     raise INVALID_ANSWER
+  end
+
+  def find_subject(subject_name)
+    Subject.select(:id).find_by(name: subject_name)
+  end
+
+  def new_answer?(previous_answers, answer_data)
+    answer_data[:selectedChair].present? && answer_data[:selectedChair] != Answer::NOT_THIS_QUARTER &&
+      previous_answers.none? { |answer| answer.subject_name == answer_data[:name] }
   end
 end
