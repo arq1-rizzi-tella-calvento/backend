@@ -1,6 +1,7 @@
 class SurveySubmissions
   INVALID_ANSWER = Class.new(StandardError)
   ExpiredSurveyPeriodError = Class.new(StandardError)
+  InvalidSurveyActionError = Class.new(StandardError)
 
   def obtain_answers(survey, student)
     Answer.where(survey_id: survey.id, student_id: student.id)
@@ -11,15 +12,22 @@ class SurveySubmissions
     survey.subjects.where.not(id: approved_subject_ids)
   end
 
+  def create_answers(student, survey, new_submission_args)
+    raise InvalidSurveyActionError if obtain_answers(survey, student).exists?
+
+    ActiveRecord::Base.transaction do
+      answers_to_create = new_submission_args.reject { |data| not_this_quarter?(data[:selectedChair]) }
+      build_new_answers(answers_to_create, survey, student)
+    end
+  end
+
   def update_answers(student, survey, new_submission_args)
     ActiveRecord::Base.transaction do
       student_answers = obtain_answers(survey, student)
-      new_answers = new_submission_args.select do |arg|
-        arg[:selectedChair].present? && student_answers.none? { |answer| answer.subject_name == arg[:name] }
-      end
+      new_answers = new_submission_args.select { |answer_data| new_answer?(student_answers, answer_data) }
 
       edit_answers(student_answers, new_submission_args - new_answers)
-      create_new_answers(new_answers, survey, student)
+      build_new_answers(new_answers, survey, student)
     end
   end
 
@@ -29,11 +37,23 @@ class SurveySubmissions
     end
   end
 
+  def find_survey(survey_id)
+    @survey_id ||= Survey.find(survey_id)
+  rescue ActiveRecord::RecordNotFound
+    raise SurveySubmissions::ExpiredSurveyPeriodError
+  end
+
   private
 
-  def create_new_answers(new_answers, survey, student)
-    new_answers.each do |answer|
-      Answer.create!(survey: survey, student: student, chair: obtain_chair(answer[:selectedChair]))
+  def build_new_answers(new_answers, survey, student)
+    new_answers.map do |answer_data|
+      Answer.new(survey: survey, student: student).tap do |answer|
+        selection = answer_data[:selectedChair]
+        subject = find_subject(answer_data[:name])
+        update_answer(answer, subject, selection)
+
+        answer.save!
+      end
     end
   end
 
@@ -44,10 +64,14 @@ class SurveySubmissions
       selection = new_answer[:selectedChair]
 
       answer.destroy! && next if not_this_quarter?(selection)
-      schedule_conflict?(selection) ? edited_with_conflict(answer) : edited_with_chair(answer, selection)
+      update_answer(answer, answer.subject, selection)
 
       answer.save!
     end
+  end
+
+  def update_answer(answer, subject, selection)
+    schedule_conflict?(selection) ? with_conflict(answer, subject) : with_chair(answer, selection)
   end
 
   def not_this_quarter?(selection)
@@ -58,13 +82,13 @@ class SurveySubmissions
     selection == Answer::SCHEDULE_PROBLEM
   end
 
-  def edited_with_chair(answer, selected_chair)
+  def with_chair(answer, selected_chair)
     answer.chair = obtain_chair(selected_chair)
     answer.reply_option.try(:destroy!)
   end
 
-  def edited_with_conflict(answer)
-    answer.reply_option = ReplyOption.with_conflicting_schedules(answer.chair.subject)
+  def with_conflict(answer, subject)
+    answer.reply_option = ReplyOption.with_conflicting_schedules(subject)
     answer.chair = nil
   end
 
@@ -72,5 +96,15 @@ class SurveySubmissions
     Chair.find(selected_chair)
   rescue ActiveRecord::RecordNotFound
     raise INVALID_ANSWER
+  end
+
+  def find_subject(subject_name)
+    Subject.select(:id).find_by(name: subject_name)
+  end
+
+  def new_answer?(previous_answers, answer_data)
+    selection = answer_data[:selectedChair]
+    selection.present? && !not_this_quarter?(selection) &&
+      previous_answers.none? { |answer| answer.subject_name == answer_data[:name] }
   end
 end

@@ -14,7 +14,7 @@ describe SurveysController do
   context 'POST #create' do
     let(:subjects) { [{ name: create(:subject).name, chairs: [], selectedChair: Answer::NOT_THIS_QUARTER }] }
     let(:other_subjects) { [{ name: create(:subject).name, chairs: [chair], selectedChair: chair.id }] }
-    let(:survey_payload) { { subjects: subjects, userId: student.token, surveyId: survey.id } }
+    let(:survey_payload) { { subjects: subjects, token: student.token, surveyId: survey.id } }
 
     it 'creates no Answer because the student doesnt select chairs' do
       expect { post :create, params: survey_payload }.to change { Answer.count }.by(0)
@@ -23,6 +23,15 @@ describe SurveysController do
     it 'creates an Answer per subject' do
       expect { post :create, params: survey_payload.merge(subjects: other_subjects) }
         .to change { Answer.count }.by(other_subjects.count)
+    end
+
+    it 'Prevents the same student from submitting the survey twice' do
+      create(:answer, survey: survey, chair: chair, student: student)
+      new_answers = [{ name: chair.subject.name, selectedChair: second_chair.id }]
+
+      post :create, params: survey_payload.merge(subjects: new_answers)
+
+      expect(response.status).to eq 400
     end
   end
 
@@ -44,12 +53,12 @@ describe SurveysController do
       expect(response_body[:subjects]).to be_empty
     end
 
-    it 'Returns a not found when the student is unknown' do
+    it 'Returns an unauthorized error when the student is unknown' do
       unexistent_student_id = Student.new(token: 4000)
 
       get_new_survey unexistent_student_id
 
-      expect(response.status).to eq 404
+      expect(response.status).to eq 401
     end
 
     it 'The survey id is retrieved for a survey' do
