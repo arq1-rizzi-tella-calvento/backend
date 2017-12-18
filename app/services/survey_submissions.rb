@@ -16,7 +16,9 @@ class SurveySubmissions
     raise InvalidSurveyActionError if obtain_answers(survey, student).exists?
 
     ActiveRecord::Base.transaction do
-      answers_to_create = new_submission_args.reject { |data| not_this_quarter?(data[:selectedChair]) }
+      answers_to_create = new_submission_args.reject do |data|
+        data[:selected].blank? || not_this_quarter?(data[:selected])
+      end
       build_new_answers(answers_to_create, survey, student)
     end
   end
@@ -26,8 +28,8 @@ class SurveySubmissions
       student_answers = obtain_answers(survey, student)
       new_answers = new_submission_args.select { |answer_data| new_answer?(student_answers, answer_data) }
 
-      edit_answers(student_answers, new_submission_args - new_answers)
-      build_new_answers(new_answers, survey, student)
+      updated_answers = edit_answers(student_answers, new_submission_args - new_answers)
+      updated_answers.concat build_new_answers(new_answers, survey, student)
     end
   end
 
@@ -48,7 +50,7 @@ class SurveySubmissions
   def build_new_answers(new_answers, survey, student)
     new_answers.map do |answer_data|
       Answer.new(survey: survey, student: student).tap do |answer|
-        selection = answer_data[:selectedChair]
+        selection = answer_data[:selected]
         subject = find_subject(answer_data[:name])
         update_answer(answer, subject, selection)
 
@@ -58,16 +60,18 @@ class SurveySubmissions
   end
 
   def edit_answers(student_answers, new_submission_args)
-    student_answers.each do |answer|
-      new_answer = new_submission_args.detect { |arg| arg[:name] == answer.subject_name }
-      next unless new_answer && new_answer[:selectedChair]
-      selection = new_answer[:selectedChair]
+    student_answers.map do |an_answer|
+      an_answer.tap do |answer|
+        new_answer = new_submission_args.detect { |arg| arg[:name] == answer.subject_name }
+        next unless new_answer && new_answer[:selected]
+        selection = new_answer[:selected]
 
-      answer.destroy! && next if not_this_quarter?(selection)
-      update_answer(answer, answer.subject, selection)
+        answer.destroy! && next if not_this_quarter?(selection)
+        update_answer(answer, answer.subject, selection)
 
-      answer.save!
-    end
+        answer.save!
+      end
+    end.reject(&:destroyed?)
   end
 
   def update_answer(answer, subject, selection)
@@ -103,7 +107,7 @@ class SurveySubmissions
   end
 
   def new_answer?(previous_answers, answer_data)
-    selection = answer_data[:selectedChair]
+    selection = answer_data[:selected]
     selection.present? && !not_this_quarter?(selection) &&
       previous_answers.none? { |answer| answer.subject_name == answer_data[:name] }
   end

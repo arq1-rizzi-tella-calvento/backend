@@ -13,7 +13,7 @@ describe SurveysController do
 
   context 'POST #create' do
     let(:subjects) { [{ name: create(:subject).name, chairs: [], selectedChair: Answer::NOT_THIS_QUARTER }] }
-    let(:other_subjects) { [{ name: create(:subject).name, chairs: [chair], selectedChair: chair.id }] }
+    let(:other_subjects) { [{ name: create(:subject).name, chairs: [chair], selected: chair.id }] }
     let(:survey_payload) { { subjects: subjects, token: student.token, surveyId: survey.id } }
 
     it 'creates no Answer because the student doesnt select chairs' do
@@ -27,7 +27,7 @@ describe SurveysController do
 
     it 'Prevents the same student from submitting the survey twice' do
       create(:answer, survey: survey, chair: chair, student: student)
-      new_answers = [{ name: chair.subject.name, selectedChair: second_chair.id }]
+      new_answers = [{ name: chair.subject.name, selected: second_chair.id }]
 
       post :create, params: survey_payload.merge(subjects: new_answers)
 
@@ -83,12 +83,6 @@ describe SurveysController do
   end
 
   context 'GET #edit' do
-    it 'Returns a 404 when there is no submitted survey' do
-      get :edit, params: { id: student.token }
-
-      expect(response.status).to eq 404
-    end
-
     it 'Returns a 401 when the student is unknown' do
       unknown_student_token = 'a_token'
 
@@ -126,7 +120,7 @@ describe SurveysController do
 
     it 'Updates existing answers from a student' do
       answer = create(:answer, survey: survey, chair: chair, student: student)
-      updated_answers = [{ name: chair.subject.name, selectedChair: second_chair.id }]
+      updated_answers = [{ name: chair.subject.name, selected: second_chair.id }]
 
       put :update, params: { id: student.token, subjects: updated_answers, surveyId: survey.id }
 
