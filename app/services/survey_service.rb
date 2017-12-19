@@ -11,7 +11,7 @@ module SurveyService
   end
 
   def description(answer)
-    return answer.selection if answer.selection == Answer::SCHEDULE_PROBLEM
+    return answer.reply_option.value if answer.selection == Answer::SCHEDULE_PROBLEM
     chair_description answer.chair
   end
 

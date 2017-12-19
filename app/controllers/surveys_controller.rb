@@ -11,7 +11,7 @@ class SurveysController < ApplicationController
   rescue SurveySubmissions::INVALID_ANSWER
     invalid_chair
   rescue SurveySubmissions::InvalidSurveyActionError
-    render json: { msg: 'Usted ya completo la encuesta, por favor use el link de editar' }, status: :bad_request
+    invalid_survey_action 'Usted ya completo la encuesta, por favor use el link de editar'
   end
 
   def new
@@ -25,8 +25,7 @@ class SurveysController < ApplicationController
 
   def edit
     survey = survey_submissions.current_survey
-    answers = survey_submissions.obtain_answers(survey_submissions.current_survey, student)
-    head(:not_found) && return if answers.empty?
+    answers = survey_submissions.obtain_answers(survey, student)
 
     render json: build_editable_survey(answers, survey_subjects(survey, student), survey), status: :ok
   rescue SurveySubmissions::ExpiredSurveyPeriodError
@@ -35,17 +34,19 @@ class SurveysController < ApplicationController
 
   def update
     survey = survey_submissions.find_survey(survey_args[:surveyId])
-    survey_submissions.update_answers(student, survey, survey_args[:subjects])
+    answers = survey_submissions.update_answers(student, survey, survey_args[:subjects])
 
-    head :ok
+    render json: generate_survey_response(answers, student), status: :ok
   rescue SurveySubmissions::INVALID_ANSWER
     invalid_chair
+  rescue SurveySubmissions::ExpiredSurveyPeriodError
+    no_active_survey
   end
 
   private
 
   def survey_args
-    params.permit(:surveyId, subjects: %i[name selectedChair])
+    params.permit(:surveyId, subjects: %i[name selected])
   end
 
   def survey_submissions
@@ -67,5 +68,9 @@ class SurveysController < ApplicationController
 
   def invalid_chair
     render json: { msg: 'Ha seleccionado una catedra invalida' }, status: :bad_request
+  end
+
+  def invalid_survey_action(msg)
+    render json: { msg: msg }, status: :bad_request
   end
 end

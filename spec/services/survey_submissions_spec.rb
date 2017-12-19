@@ -121,7 +121,7 @@ describe SurveySubmissions do
     end
 
     def build_updated_answer(subject_name, selection)
-      { name: subject_name, selectedChair: selection }
+      { name: subject_name, selected: selection }
     end
   end
 end
