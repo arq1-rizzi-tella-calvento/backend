@@ -1,7 +1,8 @@
 require 'rails_helper'
-include SurveyService
 
 describe SurveysController do
+  include SurveyService
+
   let(:subject_in_quarter) { build(:subject_in_quarter, survey: survey) }
   let(:student) { create(:student) }
   let(:chair) { create(:chair, subject_in_quarter: subject_in_quarter) }
@@ -9,12 +10,15 @@ describe SurveysController do
   let(:survey) { create(:survey) }
   let!(:subject) { create(:subject, subject_in_quarter: subject_in_quarter) }
 
-  before { subject_in_quarter.chairs = [chair, second_chair] }
+  before do
+    self.headers_token = student.token
+    subject_in_quarter.chairs = [chair, second_chair]
+  end
 
   context 'POST #create' do
     let(:subjects) { [{ name: create(:subject).name, chairs: [], selectedChair: Answer::NOT_THIS_QUARTER }] }
     let(:other_subjects) { [{ name: create(:subject).name, chairs: [chair], selected: chair.id }] }
-    let(:survey_payload) { { subjects: subjects, token: student.token, surveyId: survey.id } }
+    let(:survey_payload) { { subjects: subjects, id: survey.id } }
 
     it 'creates no Answer because the student doesnt select chairs' do
       expect { post :create, params: survey_payload }.to change { Answer.count }.by(0)
@@ -78,15 +82,16 @@ describe SurveysController do
     end
 
     def get_new_survey(student)
-      get :new, params: { token: student.token }
+      self.headers_token = student.token
+      get :new
     end
   end
 
   context 'GET #edit' do
     it 'Returns a 401 when the student is unknown' do
-      unknown_student_token = 'a_token'
+      self.headers_token = 'a_token'
 
-      get :edit, params: { id: unknown_student_token }
+      get :edit
 
       expect(response.status).to eq 401
     end
@@ -94,7 +99,7 @@ describe SurveysController do
     it 'Returns a new survey with the previously selected options' do
       create(:answer, survey: survey, chair: chair, student: student)
 
-      get :edit, params: { id: student.token }
+      get :edit
       survey_subject = response_body[:subjects].detect { |a_subject| a_subject[:name] == subject.name }
 
       expect(survey_subject[:selected]).to eq chair.id
@@ -111,9 +116,9 @@ describe SurveysController do
 
   context 'POST #update' do
     it 'Returns a 401 when the student is unknown' do
-      unknown_student_token = 'a_token'
+      self.headers_token = 'a_token'
 
-      put :update, params: { id: unknown_student_token, surveyId: survey.id }
+      put :update, params: { id: survey.id }
 
       expect(response.status).to eq 401
     end
@@ -122,9 +127,13 @@ describe SurveysController do
       answer = create(:answer, survey: survey, chair: chair, student: student)
       updated_answers = [{ name: chair.subject.name, selected: second_chair.id }]
 
-      put :update, params: { id: student.token, subjects: updated_answers, surveyId: survey.id }
+      put :update, params: { id: survey.id, subjects: updated_answers }
 
       expect(answer.reload.chair_id).to eq second_chair.id
     end
+  end
+
+  def headers_token=(token)
+    request.headers['Token'] = token
   end
 end

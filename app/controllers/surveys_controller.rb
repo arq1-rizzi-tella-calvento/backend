@@ -4,7 +4,7 @@ class SurveysController < ApplicationController
   rescue_from ActiveRecord::RecordNotFound, with: -> { head :unauthorized }
 
   def create
-    survey = survey_submissions.find_survey(survey_args[:surveyId])
+    survey = survey_submissions.find_survey(survey_args[:id])
     answers = survey_submissions.create_answers(student, survey, survey_args[:subjects])
 
     render json: generate_survey_response(answers, student), status: :ok
@@ -33,7 +33,7 @@ class SurveysController < ApplicationController
   end
 
   def update
-    survey = survey_submissions.find_survey(survey_args[:surveyId])
+    survey = survey_submissions.find_survey(survey_args[:id])
     answers = survey_submissions.update_answers(student, survey, survey_args[:subjects])
 
     render json: generate_survey_response(answers, student), status: :ok
@@ -46,7 +46,7 @@ class SurveysController < ApplicationController
   private
 
   def survey_args
-    params.permit(:surveyId, subjects: %i[name selected])
+    params.permit(:id, subjects: %i[name selected])
   end
 
   def survey_submissions
@@ -54,7 +54,7 @@ class SurveysController < ApplicationController
   end
 
   def student
-    token = params[:token] || params[:id]
+    token = request.headers['Token']
     @student ||= Student.includes(:subjects).find_by!(token: token)
   end
 
