@@ -37,15 +37,15 @@ module SurveyControllerDocs
   formats %w[json]
   def create; end
 
-  api :GET, '/surveys/:token/new', 'Informacion para crear una nueva encuesta'
-  param :token, String, required: true, desc: 'Token que autentica al estudiante'
+  api :GET, '/surveys/new', 'Informacion para crear una nueva encuesta'
+  header :token, 'Token que autentica al estudiante', required: true
   error code: 404, desc: 'No hay ninguna encuesta activa'
   returns :survey, code: 200
   formats %w[json]
   def new; end
 
-  api :GET, '/surveys/:id/edit', 'Informacion para editar una encuesta existente'
-  param :id, String, required: true, desc: 'Token que autentica al estudiante'
+  api :GET, '/surveys/edit', 'Informacion para editar una encuesta existente'
+  header :token, 'Token que autentica al estudiante', required: true
   error code: 404, desc: 'No hay ninguna encuesta activa'
   returns :survey, code: 200
   formats %w[json]
