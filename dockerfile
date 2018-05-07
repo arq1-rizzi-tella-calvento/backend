@@ -15,6 +15,7 @@ run \
     nodejs \
     build-base \
     sqlite-dev \
+    postgresql-dev \
     tzdata
 
 
@@ -24,12 +25,17 @@ copy Gemfile.lock /usr/src/Gemfile.lock
 
 workdir /usr/src/
 
-run bundle install --without production
+run bundle install
 
 copy . /usr/src/
 
-run rake db:create db:setup
+# run rake db:create db:setup
 
 expose 3000
 
-cmd ["rails", "s"] 
+# cmd ["rails", "s"] 
+
+run chmod +x runme.sh
+
+# cmd [ "bundle", "exec", "puma", "-C", "config/puma.rb" ]
+cmd [ "./runme.sh" ]
