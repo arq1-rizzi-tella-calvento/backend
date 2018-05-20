@@ -1,5 +1,6 @@
 class SurveysController < ApplicationController
   include SurveyService
+  include SurveyControllerDocs
 
   rescue_from ActiveRecord::RecordNotFound, with: -> { head :unauthorized }
 

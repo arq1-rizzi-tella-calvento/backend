@@ -40,6 +40,8 @@ GEM
       tzinfo (~> 1.1)
     addressable (2.5.2)
       public_suffix (>= 2.0.2, < 4.0)
+    apipie-rails (0.5.8)
+      rails (>= 4.1)
     arel (8.0.0)
     ast (2.3.0)
     bindex (0.5.0)
@@ -219,6 +221,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  apipie-rails
   byebug
   capybara (~> 2.13)
   coffee-rails (~> 4.2)
@@ -248,4 +251,4 @@ RUBY VERSION
    ruby 2.4.2p198
 
 BUNDLED WITH
-   1.16.0.pre.3
+   1.16.1

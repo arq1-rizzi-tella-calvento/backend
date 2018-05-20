@@ -1,4 +1,6 @@
 class SigninController < ApplicationController
+  include SignInControllerDocs
+
   def index
     student = academic_record.find_student_with(token: request.headers['Token'])
 

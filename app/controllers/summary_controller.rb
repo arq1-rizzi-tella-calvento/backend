@@ -1,4 +1,6 @@
 class SummaryController < ApplicationController
+  include SummaryControllerDocs
+
   def index
     render json: {
       subjects: academic_record.survey_summary, answers_percentage: academic_record.answers_percentage

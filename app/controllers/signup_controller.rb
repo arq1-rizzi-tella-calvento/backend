@@ -1,4 +1,6 @@
 class SignupController < ApplicationController
+  include SignupControllerDocs
+
   INVALID_SUBJECT_SELECTION = Class.new(StandardError)
 
   def subjects
