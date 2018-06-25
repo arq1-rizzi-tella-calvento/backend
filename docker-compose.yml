@@ -2,19 +2,22 @@ version: '2'
 
 services:
   app:
-    image: arq2/backend
+    build:
+      dockerfile: ./dockerfile
+      context: ./
     environment:
-      MONGO_URL: "mongodb://db/test"
       RAILS_ENV: "production"
       FRONTEND_ORIGIN: "*"
       SECRET_KEY_BASE: "7aa6a18158d2b94138727387fee3d0730fcee9b71df94a391969eb5c8f4ae9d48841d9a30f974ed7aa97183fe54166d27bf8ab7bc56553a2ad57fb8d0062de7a"
       DATABASE_URL: "postgresql://db"
       DATABASE_PASSWORD: "example"
       DATABASE_USERNAME: "postgres"
+      #RAILS_LOG_TO_STDOUT: "RAILS_LOG_TO_STDOUT"
     depends_on:
       - db
     ports:
       - "3000:3000"
+    #mem_limit: 500m
 
   db:
     image: postgres
