@@ -31,7 +31,7 @@ Ruby version: 2.4.2
 * Para buildear imagen requerida para docker compose (con root en el proyecto)
 
 ```
-  docker build -t arq2/backend .
+  docker-compose build
 ```
 
 * Para levantar docker compose con db y app :
