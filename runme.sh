@@ -1,4 +1,4 @@
-#!/bin/;sh
+#!/bin/sh
 
 rake db:seed
 rake db:migrate

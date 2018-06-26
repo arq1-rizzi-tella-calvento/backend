@@ -1,9 +1,9 @@
-version: '2'
+version: '2.3'
 
 services:
   app:
     build:
-      dockerfile: ./dockerfile
+      dockerfile: ./docker_images/app.dockerfile
       context: ./
     environment:
       RAILS_ENV: "production"
@@ -12,15 +12,21 @@ services:
       DATABASE_URL: "postgresql://db"
       DATABASE_PASSWORD: "example"
       DATABASE_USERNAME: "postgres"
-      #RAILS_LOG_TO_STDOUT: "RAILS_LOG_TO_STDOUT"
+      RAILS_LOG_TO_STDOUT: "RAILS_LOG_TO_STDOUT"
     depends_on:
       - db
     ports:
       - "3000:3000"
-    #mem_limit: 500m
+    mem_limit: 500000000
 
   db:
     image: postgres
     restart: always
     environment:
       POSTGRES_PASSWORD: example
+
+  jmeter:
+    build:
+      dockerfile: ./docker_images/jmeter.dockerfile
+      context: ./
+    tty: true
