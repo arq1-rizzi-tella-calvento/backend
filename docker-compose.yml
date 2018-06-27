@@ -30,3 +30,5 @@ services:
       dockerfile: ./docker_images/jmeter.dockerfile
       context: ./
     tty: true
+    depends_on: 
+      - db

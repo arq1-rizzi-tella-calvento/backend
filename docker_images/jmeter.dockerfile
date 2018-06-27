@@ -12,6 +12,8 @@ run tar -xzvf apache-jmeter-4.0.tgz
 run ln -s apache-jmeter-4.0/bin/jmeter jmeter
 
 copy jmeter/* .
+copy jmeter_prerun.sh .
 
-run echo 'TOKEN=$( PGPASSWORD=example psql -h db -U postgres  -t -c "select token from students limit 1" | tr -d " \t\r\n" ) ; sed -ir "s/TOKEN_HEADER/$TOKEN/g" testencuesta-parte1.jmx' >> replace_token.sh
-run chmod +x replace_token.sh
+run chmod +x jmeter_prerun.sh
+
+cmd [ "./jmeter_prerun.sh" ]
