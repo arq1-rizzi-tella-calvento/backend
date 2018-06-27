@@ -1,7 +1,7 @@
 #!/bin/sh
 
-rake db:seed
 rake db:migrate
+rake db:seed
 
 # rake assets:precompile
 

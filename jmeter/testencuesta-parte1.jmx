@@ -127,7 +127,7 @@
           <collectionProp name="HeaderManager.headers">
             <elementProp name="" elementType="Header">
               <stringProp name="Header.name">token</stringProp>
-              <stringProp name="Header.value">TOKEN</stringProp>
+              <stringProp name="Header.value">TOKEN_HEADER</stringProp>
             </elementProp>
           </collectionProp>
         </HeaderManager>
@@ -217,7 +217,7 @@
           <collectionProp name="HeaderManager.headers">
             <elementProp name="" elementType="Header">
               <stringProp name="Header.name">token</stringProp>
-              <stringProp name="Header.value">TOKEN</stringProp>
+              <stringProp name="Header.value">TOKEN_HEADER</stringProp>
             </elementProp>
           </collectionProp>
         </HeaderManager>
