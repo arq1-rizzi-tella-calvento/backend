@@ -12,7 +12,7 @@
 
 common: &default_settings
   # Required license key associated with your New Relic account.
-  license_key: 406a4c13cce07cde0a75bc981be955740803c9f8
+  license_key: <%= ENV['NEW_RELIC_KEY'] %>
 
   # Your application name. Renaming here affects where data displays in New
   # Relic.  For more details, see https://docs.newrelic.com/docs/apm/new-relic-apm/maintenance/renaming-applications
@@ -22,7 +22,7 @@ common: &default_settings
   # agent_enabled: false
 
   # Logging level for log/newrelic_agent.log
-  log_level: info
+  log_level: debug
 
 
 # Environment-specific settings are in this section.
