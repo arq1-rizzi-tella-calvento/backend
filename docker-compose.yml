@@ -18,6 +18,9 @@ services:
     ports:
       - "3000:3000"
     mem_limit: 500000000
+    memswap_limit : 0
+    cpus : 2
+
 
   db:
     image: postgres
