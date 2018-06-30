@@ -11,7 +11,7 @@ run curl http://www-us.apache.org/dist//jmeter/binaries/apache-jmeter-4.0.tgz --
 run tar -xzvf apache-jmeter-4.0.tgz
 run ln -s apache-jmeter-4.0/bin/jmeter jmeter
 
-copy jmeter/* .
+copy jmeter/* ./
 copy jmeter_prerun.sh .
 
 run chmod +x jmeter_prerun.sh
