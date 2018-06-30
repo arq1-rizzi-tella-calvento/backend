@@ -13,6 +13,7 @@ services:
       DATABASE_PASSWORD: "example"
       DATABASE_USERNAME: "postgres"
       RAILS_LOG_TO_STDOUT: "RAILS_LOG_TO_STDOUT"
+      NEW_RELIC_KEY: "406a4c13cce07cde0a75bc981be955740803c9f8"
     depends_on:
       - db
     ports:
