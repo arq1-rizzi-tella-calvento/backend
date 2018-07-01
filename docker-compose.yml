@@ -1,24 +1,38 @@
-version: '2'
+version: '2.3'
 
 services:
   app:
-    image: arq2/backend
+    build:
+      dockerfile: ./docker_images/app.dockerfile
+      context: ./
     environment:
-      MONGO_URL: "mongodb://db/test"
       RAILS_ENV: "production"
       FRONTEND_ORIGIN: "*"
       SECRET_KEY_BASE: "7aa6a18158d2b94138727387fee3d0730fcee9b71df94a391969eb5c8f4ae9d48841d9a30f974ed7aa97183fe54166d27bf8ab7bc56553a2ad57fb8d0062de7a"
       DATABASE_URL: "postgresql://db"
       DATABASE_PASSWORD: "example"
       DATABASE_USERNAME: "postgres"
+      RAILS_LOG_TO_STDOUT: "RAILS_LOG_TO_STDOUT"
       NEW_RELIC_KEY: "406a4c13cce07cde0a75bc981be955740803c9f8"
     depends_on:
       - db
     ports:
       - "3000:3000"
+    mem_limit: 500000000
+    memswap_limit : 0
+    cpus : 2
+
 
   db:
     image: postgres
     restart: always
     environment:
       POSTGRES_PASSWORD: example
+
+  jmeter:
+    build:
+      dockerfile: ./docker_images/jmeter.dockerfile
+      context: ./
+    tty: true
+    depends_on: 
+      - db
