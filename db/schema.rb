@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171209220910) do
+ActiveRecord::Schema.define(version: 20180701231830) do
 
   create_table "answers", force: :cascade do |t|
     t.integer "student_id"
@@ -90,6 +90,8 @@ ActiveRecord::Schema.define(version: 20171209220910) do
     t.integer "quarter"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["end_date"], name: "index_surveys_on_end_date", unique: true
+    t.index ["start_date"], name: "index_surveys_on_start_date", unique: true
   end
 
 end
