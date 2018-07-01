@@ -18,9 +18,12 @@ services:
       - db
     ports:
       - "3000:3000"
-    mem_limit: 500000000
-    memswap_limit : 0
-    cpus : 2
+    mem_limit: 300000000
+    memswap_limit: 350000000
+    mem_reservation: 250m
+    cpu_count: 1
+    cpu_percent: 20
+    cpus: 0.5
 
 
   db:
