@@ -24,8 +24,6 @@ class AcademicRecord
         }
       end
 
-      chairs_data.sort_by! { |data| data[:chair] }
-
       {
         name: subject.name,
         chairs: chairs_data
@@ -44,6 +42,6 @@ class AcademicRecord
   private
 
   def current_survey
-    Survey.last
+    Survey.includes(:answers).last
   end
 end

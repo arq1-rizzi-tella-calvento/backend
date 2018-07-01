@@ -13,7 +13,7 @@ describe SummaryController do
       subjects.map do |subject|
         {
           name: subject.name,
-          chairs: subject.chairs.reverse.map do |chair|
+          chairs: subject.chairs.map do |chair|
             {
               chair: chair.number,
               number_of_students: chair.number_of_students,
