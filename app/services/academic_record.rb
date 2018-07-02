@@ -15,7 +15,7 @@ class AcademicRecord
   end
 
   def survey_summary
-    Survey.includes(subject_in_quarters: { chairs: :answers }).last.subject_in_quarters.map do |subject|
+    current_survey.subject_in_quarters.map do |subject|
       chairs_data = subject.chairs.map do |chair|
         {
           chair: chair.number,
@@ -42,6 +42,6 @@ class AcademicRecord
   private
 
   def current_survey
-    Survey.includes(:answers).last
+    @current_survey ||= Survey.includes(subject_in_quarters: [:subject, { chairs: :answers }]).last
   end
 end
