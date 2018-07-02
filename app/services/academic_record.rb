@@ -42,6 +42,6 @@ class AcademicRecord
   private
 
   def current_survey
-    @current_survey ||= Survey.includes(subject_in_quarters: { chairs: :answers }).last
+    @current_survey ||= Survey.includes(subject_in_quarters: [:subject, { chairs: :answers }]).last
   end
 end
