@@ -1,7 +1,7 @@
 version: '2.3'
 
 services:
-  app:
+  backend:
     build:
       dockerfile: ./docker_images/app.dockerfile
       context: ./
@@ -9,15 +9,12 @@ services:
       - ./docker_images/app.env
     depends_on:
       - db
-    ports:
-      - "3000:3000"
     mem_limit: 300000000
     memswap_limit: 350000000
     mem_reservation: 250m
     cpu_count: 1
     cpu_percent: 20
     cpus: 0.5
-
 
   db:
     image: postgres
@@ -32,3 +29,12 @@ services:
     tty: true
     depends_on: 
       - db
+
+  app:
+    build: 
+      dockerfile: ./docker_images/nginx.dockerfile
+      context: ./
+    links:
+      - backend
+    ports:
+      - '3000:8080'
