@@ -34,7 +34,7 @@ Ruby version: 2.4.2
   docker-compose build
 ```
 
-* Para levantar la aplicación con docker compose `docker-compose up -d --build --scale backend=2
+* Para levantar la aplicación con docker compose `docker-compose up -d --build --scale backend=2`
 
 Notar flag `--scale backend=2` . en el archivo nginx.conf asumimos que existen dos instancas de backend para balanceo.
 
