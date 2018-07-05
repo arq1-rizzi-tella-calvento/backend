@@ -13,8 +13,10 @@ services:
     memswap_limit: 350000000
     mem_reservation: 250m
     cpu_count: 1
-    cpu_percent: 20
-    cpus: 0.5
+    # cpu_percent: 20
+    # cpus: 0.5
+    cpu_period: 100000 
+    cpu_quota: 150000
 
   db:
     image: postgres
