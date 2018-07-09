@@ -34,25 +34,18 @@ Ruby version: 2.4.2
   docker-compose build
 ```
 
-* Para levantar docker compose con db y app :
+* Para levantar la aplicación con docker compose `docker-compose up -d --build --scale backend=3`
 
-```
-  docker-compose up 
-  docker-compose up -d
-```
+* podemos ver los stats de los containers con `docker stats $(docker-compose ps -q || echo "#")`
 
-(-d es opcional para dejarlo como daemon)
 
-* Para colarse en los containers :
+Notar flag `--scale backend=2` . en el archivo nginx.conf asumimos que existen dos instancas de backend para balanceo.
 
-```
-  docker exec -it backend_app_1 sh
-  docker exec -it backend_db_1 psql -U postgres
-```
+### JMETER imagen
 
-* curl rápido a la api : 
+Una vez arriba los contenedores, podemos usar el container jmeter para correr los test de jmeter.
 
-```
-  curl --silent -H 'Token: <token>' http://localhost:3000/summary
-```
+* `docker exec -it backend_jmeter_1 sh`
+* `./jmeter -nt 250alu50doc30sec.jmx` 
+
 
